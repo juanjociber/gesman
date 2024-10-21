@@ -37,49 +37,34 @@ $(document).ready(function() {
     });*/
 });
 
-var modalAgregarTareo=new bootstrap.Modal(document.getElementById('modalAgregarTareo'), {
-    keyboard: false
-});
-
 function FnModalAgregarTareo(){
-    document.getElementById('msjAgregarTareo').innerHTML="";
-    modalAgregarTareo.show();
+    var modalAgregarTareo=new bootstrap.Modal(document.getElementById('modalAgregarTareo'), {
+        keyboard: false
+    }).show();
 };
 
 async function FnAgregarTareo(){
     vgLoader.classList.remove('loader-full-hidden');
     try {        
         const formData = new FormData();
-        formData.append('idot', document.getElementById('txtIdOt').value);
-        formData.append('idpersonal', document.getElementById('cbPersonal').value);
-        formData.append('personal', document.getElementById("cbPersonal").options[document.getElementById("cbPersonal").selectedIndex].text);
+        formData.append('ordid', document.getElementById('txtId').value);
+        formData.append('perid', document.getElementById('cbPersonal').value);
+        formData.append('pernombre', document.getElementById("cbPersonal").options[document.getElementById("cbPersonal").selectedIndex].text);
         formData.append('ingreso', document.getElementById('dtpIngreso').value);
         formData.append('salida', document.getElementById('dtpSalida').value);
-        const response = await fetch("/gesman/update/ModificarOrdenTareo.php", {
+        const response = await fetch("/gesman/insert/AgregarOrdenTareo.php", {
             method: "POST",
             body: formData
-        });
-        /*.then(response => response.text())
-        .then((response) => {
-            console.log(response)
-        })
-        .catch(err => console.log(err))*/
-        if(!response.ok){
-            throw new Error(`Error del servidor: ${response.status} ${response.statusText}`)
-        }
+        });//.then(response=>response.text()).then((response)=>{console.log(response)}).catch(err=>console.log(err));
 
+        if(!response.ok){throw new Error(`${response.status} ${response.statusText}`);}
         const datos = await response.json();
-        
-        if(datos.res){
-            location.reload();
-        }else{
-            throw new Error(datos.msg);
-        }
-    } catch (error) {
-        document.getElementById('msjAgregarTareo').innerHTML = `<div class="alert alert-danger m-0 p-1 text-center" role="alert">${error}</div>`;
-        setTimeout(()=>{
-            vgLoader.classList.add('loader-full-hidden');
-        },500);
+        if(!datos.res){throw new Error(datos.msg);} 
+
+        setTimeout(function(){location.reload();},500);
+    } catch (ex) {
+        showToast(ex.message, 'bg-danger');
+        setTimeout(function(){vgLoader.classList.add('loader-full-hidden');},1000);
     }
 }
 
@@ -88,44 +73,32 @@ async function FnEliminarTareo(id){
     try {        
         const formData = new FormData();
         formData.append('id', id);
-        formData.append('idot', document.getElementById('txtIdOt').value);
-        const response = await fetch("/gesman/update/ModificarOrdenTareo.php", {
+        formData.append('ordid', document.getElementById('txtId').value);
+        const response = await fetch("/gesman/delete/EliminarOrdenTareo.php", {
             method: "POST",
             body: formData
-        });
-        /*.then(response => response.text())
-        .then((response) => {
-            console.log(response)
-        })
-        .catch(err => console.log(err))*/
-        if(!response.ok){
-            throw new Error(`Error del servidor: ${response.status} ${response.statusText}`)
-        }
+        });//.then(response=>response.text()).then((response)=>{console.log(response)}).catch(err=>console.log(err));
 
+        if(!response.ok){throw new Error(`${response.status} ${response.statusText}`);}
         const datos = await response.json();
-        
-        if(datos.res){
-            location.reload();
-        }else{
-            throw new Error(datos.msg);
-        }
-    } catch (error) {
-        alert(error);
-        setTimeout(()=>{
-            vgLoader.classList.add('loader-full-hidden');
-        },500);
+        if(!datos.res){throw new Error(datos.msg);} 
+
+        setTimeout(function(){location.reload();},500);
+    } catch (ex) {
+        showToast(ex.message, 'bg-danger');
+        setTimeout(function(){vgLoader.classList.add('loader-full-hidden');},1000);
     }
 }
 
-function FnResumenOrden(){
-    orden = document.getElementById('txtIdOt').value;
-    if(orden > 0){
-        window.location.href='/gesman/ResumenOrden.php?orden='+orden;
+function FnOrden(){
+    let id = document.getElementById('txtId').value;
+    if(id > 0){
+        window.location.href='/gesman/Orden.php?id='+id;
     }
     return false;
 }
 
-function FnListarOrdenes(){
+function FnOrdenes(){
     window.location.href='/gesman/Ordenes.php';
     return false;
 }

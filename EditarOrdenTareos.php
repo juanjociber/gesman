@@ -6,35 +6,30 @@
         exit();
     }
 
-    date_default_timezone_set("America/Lima");
+    $ID=empty($_GET['id']) ? 0 : $_GET['id'];
+    $ESTADO=0;
+    $ORDEN=array();
+    $TAREOS=array();
+
     require_once $_SERVER['DOCUMENT_ROOT'].'/gesman/connection/ConnGesmanDb.php';
+    require_once $_SERVER['DOCUMENT_ROOT']."/gesman/data/OrdenesData.php";
 
-    $IdOt = 0;
-    $Ot = '';
-    $Estado = 0; 
 
-    if(!empty($_GET['orden'])){
-        try{
-            $conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $stmt=$conmy->prepare("select idot, ot, estado from man_ots where idot=:IdOt and idcliente=:IdCliente;");
-            $stmt->execute(array('IdOt'=>$_GET['orden'], 'IdCliente'=>$_SESSION['CliId']));
-            $row=$stmt->fetch();
-            if($row){
-                $IdOt = $row['idot'];
-                $Ot = $row['ot'];
-                $Estado = $row['estado'];
+    try{
+        $conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $ORDEN=FnBuscarOrden($conmy, $_SESSION['CliId'], $ID);
+        if(!empty($ORDEN['id'])){
+            $TAREOS=FnBuscarOrdenTareos($conmy, $ID);
+            if(!empty($ORDEN['estado'])){
+                $ESTADO=$ORDEN['estado'];
             }
-            $stmt=null;
-        }catch(PDOException $ex){
-            $stmt=null;
         }
+        $conmy==null;
+    } catch(PDOException $ex) {
+        $conmy = null;
+    } catch (Exception $ex) {
+        $conmy = null;
     }
-
-    $Visible = ' d-none';
-    if($Estado==1 || $Estado==2 || $Estado==4){
-        $Visible = '';
-    }
-
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -103,16 +98,16 @@
         
         <div class="row mb-3">
             <div class="col-12 btn-group" role="group" aria-label="Basic example">
-                <button type="button" class="btn btn-outline-primary fw-bold" onclick="FnListarOrdenes(); return false;"><i class="fas fa-list"></i><span class="d-none d-sm-block"> Órdenes</span></button>
-                <button type="button" class="btn btn-outline-primary fw-bold" onclick="FnResumenOrden(); return false;"><i class="fas fa-desktop"></i><span class="d-none d-sm-block"> Resúmen</span></button>
+                <button type="button" class="btn btn-outline-primary fw-bold" onclick="FnOrdenes(); return false;"><i class="fas fa-list"></i><span class="d-none d-sm-block"> Órdenes</span></button>
+                <button type="button" class="btn btn-outline-primary fw-bold" onclick="FnOrden(); return false;"><i class="fas fa-desktop"></i><span class="d-none d-sm-block"> Resúmen</span></button>
             </div>
         </div>
 
         <div class="row border-bottom mb-3 fs-5">
             <div class="col-12 fw-bold d-flex justify-content-between">
                 <p class="m-0 p-0"><?php echo $_SESSION['CliNombre'];?></p>
-                <input type="text" class="d-none" id="txtIdOt" value="<?php echo $IdOt;?>" readonly/>
-                <p class="m-0 p-0 text-center text-secondary">OT <?php echo $Ot;?></p>
+                <input type="hidden" id="txtId" value="<?php echo $ID;?>">
+                <p class="m-0 p-0 text-center text-secondary"><?php echo empty($ORDEN['nombre'])?null:$ORDEN['nombre'];?></p>
             </div>
         </div>
 
@@ -120,10 +115,10 @@
             <div class="col-12">
                 <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
                     <ol class="breadcrumb">                        
-                        <li class="breadcrumb-item fw-bold"><a href="/gesman/EditarOrden.php?orden=<?php echo $IdOt;?>" class="text-decoration-none">ORDEN</a></li>
+                        <li class="breadcrumb-item fw-bold"><a href="/gesman/EditarOrden.php?id=<?php echo $ID;?>" class="text-decoration-none">ORDEN</a></li>
                         <li class="breadcrumb-item active fw-bold" aria-current="page">TAREOS</li>
-                        <li class="breadcrumb-item fw-bold"><a href="/gesman/EditarOrdenImagenes.php?orden=<?php echo $IdOt;?>" class="text-decoration-none">IMAGENES</a></li>
-                        <li class="breadcrumb-item fw-bold"><a href="/gesman/EditarOrdenVales.php?orden=<?php echo $IdOt;?>" class="text-decoration-none">VALES</a></li>
+                        <li class="breadcrumb-item fw-bold"><a href="/gesman/EditarOrdenArchivos.php?id=<?php echo $ID;?>" class="text-decoration-none">ARCHIVOS</a></li>
+                        <li class="breadcrumb-item fw-bold"><a href="/gesman/EditarOrdenVales.php?id=<?php echo $ID;?>" class="text-decoration-none">VALES</a></li>
                     </ol>
                 </nav>
             </div>
@@ -131,49 +126,43 @@
 
         <div class="row border-bottom mb-3">
             <div class="col-12 mb-2">
-                <button type="button" class="btn btn-outline-primary form-control<?php echo $Visible; ?>" onclick="FnModalAgregarTareo(); return false;"><i class="fas fa-plus"></i> Tareo</button>              
+                <?php
+                    if($ESTADO==1 || $ESTADO==2){
+                        echo '<button type="button" class="btn btn-outline-primary form-control" onclick="FnModalAgregarTareo(); return false;"><i class="fas fa-plus"></i> Tareo</button>';
+                    }
+                ?>
             </div>
         </div>
 
         <div class="row p-2">
             <div class="col-12">
             <?php
-            try{
-                $conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $stmt=$conmy->prepare("select idtareo, personal, ingreso, salida, tmin from man_tareos where idot=:IdOt;");
-                $stmt->execute(array('IdOt'=>$IdOt));
-                if($stmt->rowCount()>0){
-                    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+                if(count($TAREOS)>0){
+                    foreach ($TAREOS as $key=>$valor) {
                         echo '
                         <div class="row mb-2 border-bottom border-secondary" style="position: relative;">
-                            <div class="container-wa text-end pe-2'.$Visible.'">
-                                <a class="text-decoration-none text-secondary p-0" href="#" onclick="FnEliminarTareo('.$row['idtareo'].'); return false;"><i class="fas fa-times link-wa fs-4"></i></a>
+                            <div class="container-wa text-end pe-2">
+                                <a class="text-decoration-none text-secondary p-0" href="#" onclick="FnEliminarTareo('.$valor['id'].'); return false;"><i class="fas fa-times link-wa fs-4"></i></a>
                             </div>
                             <div class="col-12">
-                                <p class="p-0 m-0 fw-bold">'.$row['personal'].'</p>
+                                <p class="p-0 m-0 fw-bold">'.$valor['pernombre'].'</p>
                             </div>
                             <div class="col-12 d-flex justify-content-between" style="font-size:13px;">
-                                <p class="p-0 m-0">'.$row['ingreso'].'</p>
-                                <p class="p-0 m-0">'.$row['salida'].'</p>
-                                <p class="p-0 m-0 fw-bold">'.$row['tmin'].' Min</p>
+                                <p class="p-0 m-0">'.$valor['ingreso'].'</p>
+                                <p class="p-0 m-0">'.$valor['salida'].'</p>
+                                <p class="p-0 m-0 fw-bold">'.$valor['minutos'].' Min</p>
                             </div>
-                        </div>';                     
+                        </div>';
                     }
                 }else{
                     echo '
                     <div class="col-12">
                         <p class="fst-italic">No hay Tareos asociados a esta Órden.</p>
                     </div>';
-                }
-                $stmt=null;
-            }catch(PDOException $e){
-                $stmt=null;
-            }
+                }                
             ?>
-            </div>
-            
+            </div>            
         </div>
-
     </div>
     
     <div class="modal fade" id="modalAgregarTareo" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -201,7 +190,6 @@
                         </div>                  
                     </div>
                 </div>
-                <div class="modal-body pb-1 pt-1" id="msjAgregarTareo"></div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" onclick="FnAgregarTareo(); return false;">GUARDAR</button>
                 </div>              
@@ -216,6 +204,7 @@
     <script src="/mycloud/library/jquery-3.5.1/jquery-3.5.1.js"></script>
     <script src="/mycloud/library/bootstrap-5.0.2-dist/js/bootstrap.min.js"></script>
     <script src="/mycloud/library/select2-4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="/mycloud/library/bootstrap-5-alerta-1.0/js/bootstrap-5-alerta-1.0.js"></script>
     <script src="/gesman/js/EditarOrdenTareos.js"></script>
     <script src="/gesman/menu/sidebar.js"></script>
 

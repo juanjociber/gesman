@@ -1,4 +1,4 @@
-function fnOcultarFondoMenu() {
+function FnOcultarFondoMenu() {
 	document.getElementById('button-menu').classList.replace('fa-times', 'fa-bars');
 	document.querySelector('.navegacion').setAttribute('style', 'width: 0%; background: rgba(0,0,0,.0);');
 	document.querySelectorAll('.navegacion .submenu').forEach(function (submenu) {
@@ -9,19 +9,19 @@ function fnOcultarFondoMenu() {
 	return false;
 }
 
-function fnMostrarSubmenu(menu) {
+function FnMostrarSubmenu(menu) {
 	//idmenu = menu.parentNode.getAttribute('menu');
 	//document.querySelector('.item-submenu[menu="' + idmenu + '"] .submenu').setAttribute("style", "left: 0px;");
 	menu.parentNode.querySelector('.submenu').setAttribute("style", "left: 0px;");
 	return false;
 }
 
-function fnOcultarSubmenu(menu) {
+function FnOcultarSubmenu(menu) {
 	menu.parentNode.setAttribute("style", "left: -320px;")
 	return false;
 }
 
-function fnMenuToggle() {
+function FnMenuToggle() {
 	if (document.getElementById('button-menu').classList.contains('fa-bars')) {
 		document.getElementById('button-menu').classList.replace('fa-bars', 'fa-times');
 		document.querySelector('.navegacion .menu').setAttribute('style', 'left:0px;')

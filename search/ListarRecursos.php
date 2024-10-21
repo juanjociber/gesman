@@ -1,142 +1,53 @@
-<?php
+<?php 
     session_start();
-	require_once $_SERVER['DOCUMENT_ROOT'].'/gesman/connection/ConnGesmanDb.php';
 
-	$Bandera = false;
-	if(isset($_SESSION['CliId'])){
-		$Bandera = true;
-	}
+    require_once $_SERVER['DOCUMENT_ROOT']."/gesman/connection/ConnGesmanDb.php";
+    require_once $_SERVER['DOCUMENT_ROOT']."/gesman/data/OrdenesData.php";
 
-	$data['data'] = array();
-	$data['res'] = false;
-	$data['msg'] = 'Error del sistema.';
+    $datos = array('data'=>array(), 'res'=>false, 'msg'=>'Error general.');
 
-	if($Bandera == true && $_SERVER['REQUEST_METHOD'] === 'POST'){
-		if(!empty($_POST['recurso'])){
-			$query = '';
-			switch ($_POST['recurso']) {
-	
-				case 'sistema':
-					if(!empty($_POST['nombre'])){
-						$query = " and sistema like '%".$_POST['nombre']."%'";
-					}
-					try{
-						$conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-						$stmt=$conmy->prepare("select idsistema, sistema from man_sistemas where idcliente=:IdCliente".$query.";");
-						$stmt->bindParam(':IdCliente', $_SESSION['CliId'], PDO::PARAM_INT);
-						$stmt->execute();	
-						if($stmt->rowCount()>0){
-							while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-								$data['data'][] = array(
-									'id' => $row['idsistema'],
-									'nombre' => $row['sistema']
-								);
-							}
-							$data['res'] = true;
-							$data['msg'] = 'Ok.';
-						}else{
-							$data['msg'] = 'No se encontró resultados.';
-						}
-						$stmt = null;
-					}catch(PDOException $e){
-						$stmt = null;
-						$data['msg'] = $e->getMessage();
-					}
-					break;
-				
-				case 'origen':
-					if(!empty($_POST['nombre'])){
-						$query = " and origen like '%".$_POST['nombre']."%'";
-					}
-					try{
-						$conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-						$stmt=$conmy->prepare("select idorigen, origen from man_origenes where idcliente=:IdCliente".$query.";");
-						$stmt->bindParam(':IdCliente', $_SESSION['CliId'], PDO::PARAM_INT);
-						$stmt->execute();	
-						if($stmt->rowCount()>0){
-							while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-								$data['data'][] = array(
-									'id' => $row['idorigen'],
-									'nombre' => $row['origen']
-								);
-							}
-							$data['res'] = true;
-							$data['msg'] = 'Ok.';
-						}else{
-							$data['msg'] = 'No se encontró resultados.';
-						}
-						$stmt = null;
-					}catch(PDOException $e){
-						$stmt = null;
-						$data['msg'] = $e->getMessage();
-					}
-					break;
-	
-				case 'supervisor':
-					if(!empty($_POST['nombre'])){
-						$query = " and nombre like '%".$_POST['nombre']."%'";
-					}
-					try{
-						$conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-						$stmt=$conmy->prepare("select idusuario, nombre from sis_usuarios where estado=1".$query.";");
-						$stmt->execute();	
-						if($stmt->rowCount()>0){
-							while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-								$data['data'][] = array(
-									'id' => $row['idusuario'],
-									'nombre' => $row['nombre']
-								);
-							}
-							$data['res'] = true;
-							$data['msg'] = 'Ok.';
-						}else{
-							$data['msg'] = 'No se encontró resultados.';
-						}
-						$stmt = null;
-					}catch(PDOException $e){
-						$stmt = null;
-						$data['msg'] = $e->getMessage();
-					}
-					break;
-	
-				case 'contacto':
-					if(!empty($_POST['nombre'])){
-						$query = " and supervisor like '%".$_POST['nombre']."%'";
-					}
-					try{
-						$conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-						$stmt=$conmy->prepare("select idsupervisor, supervisor from cli_supervisores where idcliente=:IdCliente".$query." and estado=2;");
-						$stmt->bindParam(':IdCliente', $_SESSION['CliId'], PDO::PARAM_INT);
-						$stmt->execute();	
-						if($stmt->rowCount()>0){
-							while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-								$data['data'][] = array(
-									'id' => $row['idsupervisor'],
-									'nombre' => $row['supervisor']
-								);
-							}
-							$data['res'] = true;
-							$data['msg'] = 'Ok.';
-						}else{
-							$data['msg'] = 'No se encontró resultados.';
-						}
-						$stmt = null;
-					}catch(PDOException $e){
-						$stmt = null;
-						$data['msg'] = $e->getMessage();
-					}
-					break;
-				
-				default:
-					$data['msg'] = 'No se reconoce el comando.';
-					break;
-			}
-		}else{
-			$data['msg'] = 'Parámetros incompletos.';
-		}
-	}else{
-		$data['msg'] = 'Usuario no autorizado.';
-	}
+    try {
+        $conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        if(empty($_SESSION['CliId'])){throw new Exception("Usuario no tiene Autorización.");}
+        if(empty($_POST['recurso'])){throw new Exception("La información esta incompleta.");}
 
-	echo json_encode($data);
+        $nombre=empty($_POST['nombre'])?'':$_POST['nombre'];
+        $response=array();
+
+        switch ($_POST['recurso']) {	
+            case 'sistema':
+                $response=FnListarClienteSistemas($conmy, $_SESSION['CliId'], $nombre);
+                break;            
+            case 'origen':
+                $response=FnListarClienteOrigenes($conmy, $_SESSION['CliId'], $nombre);                
+                break;
+            case 'contacto':
+                $response=FnListarClienteContactos($conmy, $_SESSION['CliId'], $nombre);
+                break;
+            case 'supervisor':
+                $response=FnListarClienteContactos($conmy, 1, $nombre);
+                break;            
+            default:
+                throw new Exception("No se reconoce el Recurso.");
+                break;
+        }
+
+        if(count($response)>0){
+            $datos['res'] = true;
+            $datos['msg'] = 'Ok.';
+            $datos['data'] = $response;
+        }else{
+            throw new Exception("No se encontró resultados.");            
+        }
+        $conmy = null;
+    } catch(PDOException $ex) {
+        $datos['msg'] = $ex->getMessage();
+        $conmy = null;
+    } catch (Exception $ex) {
+        $datos['msg'] = $ex->getMessage();
+        $conmy = null;
+    }
+
+    echo json_encode($datos);
+
 ?>

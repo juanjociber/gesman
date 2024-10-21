@@ -16,11 +16,11 @@
     $Tipo='';
     $Estado = 0; 
 
-    if(!empty($_GET['orden'])){
+    if(!empty($_GET['id'])){
         try{
             $conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $stmt=$conmy->prepare("select idot, ot, activo, tipoot, estado from man_ots where idot=:IdOt and idcliente=:IdCliente;");
-            $stmt->execute(array('IdOt'=>$_GET['orden'], 'IdCliente'=>$_SESSION['CliId']));
+            $stmt->execute(array('IdOt'=>$_GET['id'], 'IdCliente'=>$_SESSION['CliId']));
             $row=$stmt->fetch();
             if($row){
                 $Id=$row['idot'];
@@ -114,7 +114,7 @@
         </div>
 
         <div class="d-none">
-            <input type="text" id="txtOtId" value="<?php echo $Id;?>" readonly>
+            <input type="hidden" id="txtId" value="<?php echo $Id;?>" readonly>
             <input type="text" id="txtCliId" value="<?php echo $_SESSION['CliIdOdoo'];?>" readonly>
             <input type="text" id="txtWhId" value="<?php echo $_SESSION['WhIdOdoo'];?>" readonly>
             <input type="text" id="txtOtNombre" value="<?php echo $Nombre;?>" readonly>
@@ -127,7 +127,7 @@
         <div class="row border-bottom mb-3 fs-5">
             <div class="col-12 fw-bold d-flex justify-content-between">
                 <p class="m-0 p-0"><?php echo $_SESSION['CliNombre'];?></p>
-                <p class="m-0 p-0 text-center text-secondary">OT <?php echo $Nombre;?></p>
+                <p class="m-0 p-0 text-center text-secondary"><?php echo $Nombre;?></p>
             </div>
         </div>
 
@@ -135,9 +135,9 @@
             <div class="col-12">
                 <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
                     <ol class="breadcrumb">                        
-                        <li class="breadcrumb-item fw-bold"><a href="/gesman/EditarOrden.php?orden=<?php echo $Id;?>" class="text-decoration-none">ORDEN</a></li>
-                        <li class="breadcrumb-item fw-bold"><a href="/gesman/EditarOrdenTareos.php?orden=<?php echo $Id;?>" class="text-decoration-none">TAREOS</a></li>
-                        <li class="breadcrumb-item fw-bold"><a href="/gesman/EditarOrdenImagenes.php?orden=<?php echo $Id;?>" class="text-decoration-none">IMAGENES</a></li>
+                        <li class="breadcrumb-item fw-bold"><a href="/gesman/EditarOrden.php?id=<?php echo $Id;?>" class="text-decoration-none">ORDEN</a></li>
+                        <li class="breadcrumb-item fw-bold"><a href="/gesman/EditarOrdenTareos.php?id=<?php echo $Id;?>" class="text-decoration-none">TAREOS</a></li>
+                        <li class="breadcrumb-item fw-bold"><a href="/gesman/EditarOrdenArchivos.php?id=<?php echo $Id;?>" class="text-decoration-none">ARCHIVOS</a></li>
                         <li class="breadcrumb-item active fw-bold" aria-current="page">VALES</li>
                     </ol>
                 </nav>

@@ -1,85 +1,47 @@
-<?php
+<?php 
     session_start();
-    require_once $_SERVER['DOCUMENT_ROOT'].'/gesman/connection/ConnGesmanDb.php';
 
-    $Bandera = false;
-	if(isset($_SESSION['CliId']) && isset($_SESSION['UserName'])){
-		$Bandera = true;
-	}
+    require_once $_SERVER['DOCUMENT_ROOT']."/gesman/connection/ConnGesmanDb.php";
+    require_once $_SERVER['DOCUMENT_ROOT']."/gesman/data/OrdenesData.php";
 
-    $data = array();
-    $data['res'] = false;
-    $data['msg'] = 'Error del sistema.';
+    $datos = array('res'=>false, 'msg'=>'Error general.');
 
-    if($Bandera==true && $_SERVER['REQUEST_METHOD'] === 'POST'){
-        if(!empty($_POST['idot']) && !empty($_POST['fecha']) && !empty($_POST['idsistema']) && !empty($_POST['sistema']) && !empty($_POST['supervisor']) && !empty($_POST['contacto']) && !empty($_POST['actividad'])){
-            
-            $Usuario = date('Ymd-His').' ('.$_SESSION['UserName'].')';
+    try {
+        $conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        if(empty($_SESSION['CliId'])){throw new Exception("Usuario no tiene Autorización.");}
+        if(empty($_POST['id']) || empty($_POST['fecha']) || empty($_POST['actividades'])){throw new Exception("La información esta incompleta.");}
 
-            $IdOrigen = 0;
-            $Origen = 'UNKNOWN';
-            $Km = 0;
-            $Descripcion = '';
-            $Observacion = '';
+        $orden=array(
+            'id'=>$_POST['id'],
+            'cliid'=>$_SESSION['CliId'],
+            'sisid'=>empty($_POST['sisid'])?0:$_POST['sisid'],
+            'oriid'=>empty($_POST['oriid'])?0:$_POST['oriid'],
+            'actid'=>empty($_POST['actid'])?0:$_POST['actid'],
+            'sisnombre'=>empty($_POST['sisnombre'])?null:$_POST['sisnombre'],
+            'orinombre'=>empty($_POST['orinombre'])?null:$_POST['orinombre'],
+            'fecha'=>$_POST['fecha'],
+            'actividades'=>$_POST['actividades'],
+            'trabajos'=>empty($_POST['trabajos'])?null:$_POST['trabajos'],
+            'observaciones'=>empty($_POST['observaciones'])?null:$_POST['observaciones'],
+            'equkm'=>empty($_POST['equkm'])?0:$_POST['equkm'],
+            'equhm'=>empty($_POST['equhm'])?0:$_POST['equhm'],
+            'supervisor'=>empty($_POST['supervisor'])?null:$_POST['supervisor'],
+            'clicontacto'=>empty($_POST['clicontacto'])?null:$_POST['clicontacto'],
+            'usuario'=>date('Ymd-His').' ('.$_SESSION['UserName'].')'
+        );
 
-            if(!empty($_POST['idorigen'])){
-                $IdOrigen = $_POST['idorigen'];
-            }
-
-            if(!empty($_POST['origen'])){
-                $Origen = $_POST['origen'];
-            }
-
-            if(!empty($_POST['km'])){
-                $Km = $_POST['km'];
-            }
-
-            if(!empty($_POST['descripcion'])){
-                $Descripcion = $_POST['descripcion'];
-            }
-
-            if(!empty($_POST['observacion'])){
-                $Observacion = $_POST['observacion'];
-            }
-
-            try{
-                $conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $stmt=$conmy->prepare("update man_ots set idsistema=:IdSistema, idorigen=:IdOrigen, sistema=:Sistema, origen=:Origen, fechainicial=:Fecha, actividad=:Actividad, descripcion=:Descripcion, 
-                observaciones=:Observacion, km=:Km, supervisor=:Supervisor, contacto=:Contacto, actualizacion=:Actualizacion, estado=2 where idot=:IdOt and idcliente=:IdCliente and estado in(1,2,4);");
-                $stmt->execute(array(
-                    ':IdSistema' => $_POST['idsistema'],
-                    ':IdOrigen' => $IdOrigen,
-                    ':Sistema' => $_POST['sistema'],
-                    ':Origen' => $Origen,
-                    ':Fecha' => $_POST['fecha'],
-                    ':Actividad' => $_POST['actividad'],
-                    ':Descripcion' => $Descripcion,
-                    ':Observacion' => $Observacion,
-                    ':Km' => $Km,
-                    ':Supervisor' => $_POST['supervisor'],
-                    ':Contacto' => $_POST['contacto'],
-                    ':Actualizacion' => $Usuario,
-                    ':IdOt' => $_POST['idot'],
-                    ':IdCliente' => $_SESSION['CliId']                  
-                ));
-
-                if($stmt->rowCount()>0){
-                    $data['res'] = true;
-                    $data['msg'] = 'Se modificó la Órden.';                    
-                }else{
-                    $data['msg'] = 'No se pudo modificar la Órden.';
-                }
-                $stmt = null;                
-            }catch(PDOException $e){
-                $stmt=null;
-                $data['msg'] = $e->getMessage();
-            }
-        }else{
-            $data['msg'] = 'La información esta incompleta.';
+        if(FnModificarOrden($conmy, $orden)){
+            $datos['res'] = true;
+            $datos['msg'] = 'Se modificó la Orden de Trabajo.';
         }
-    }else{
-        $data['msg'] = 'El usuario no puede realizar esta acción.';
-    }
 
-    echo json_encode($data);
+        $conmy = null;
+    } catch(PDOException $ex) {
+        $datos['msg'] = $ex->getMessage();
+        $conmy = null;
+    } catch (Exception $ex) {
+        $datos['msg'] = $ex->getMessage();
+        $conmy = null;
+    }
+    echo json_encode($datos);
 ?>

@@ -54,7 +54,7 @@ header #button-menu {
 }
 
 .navegacion .menu li.title-menu {
-    padding: 20px;
+    padding: 15px;
     background: #5F6F81;
     color: #fff;
     text-align: center;
@@ -63,7 +63,7 @@ header #button-menu {
 
 .navegacion .menu a {
     display: block;
-    padding: 20px;
+    padding: 15px;
     border-bottom: 1px solid #C6D0DA;
     font-size: 22px;
     font-weight: 200;

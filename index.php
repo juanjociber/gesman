@@ -8,16 +8,17 @@ $estado=false;
 if(!empty($_POST['usu']) and !empty($_POST['psw'])){
     try {
         $conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);	
-        $stmt=$conmy->prepare('select nombre, usuario from sis_usuarios where usuario=:Usuario and clave=:Clave and estado=:Estado');
+        $stmt=$conmy->prepare('select nombre, usuario, lman from sis_usuarios where usuario=:Usuario and clave=:Clave and estado=:Estado');
         $stmt->execute(array(':Usuario'=>$_POST['usu'], ':Clave'=>$_POST['psw'], 'Estado'=>1));
         if ($stmt->rowCount()==1){
             $row = $stmt->fetch();
             $estado=true;
-            $_SESSION['UserNombre'] = $row['nombre'];
-            $_SESSION['UserName'] = $row['usuario'];
-            $_SESSION['CliId'] = 0;
+            $_SESSION['UserNombre']=$row['nombre'];
+            $_SESSION['UserName']=$row['usuario'];
+            $_SESSION['RolMan']=$row['lman'];
+            $_SESSION['CliId']=0;
             $_SESSION['CliIdOdoo']=0;
-            $_SESSION['CliNombre'] = 'UNKNOWN';
+            $_SESSION['CliNombre']='UNKNOWN';
             $msg="<div class='alert alert-info p-2 mb-2 text-center' role='alert'><strong>¡Ingreso exitoso!</strong></div>";
         }else{
             $msg="<div class='alert alert-danger p-2 mb-0 text-center' role='alert'><strong>Acceso denegado!. </strong> Usuario o contraseña incorrectos.</div>";

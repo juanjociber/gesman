@@ -9,133 +9,129 @@ const modalBuscarRecursos=new bootstrap.Modal(document.getElementById('modalBusc
     keyboard: false
 });
 
-function FnModalBuscarRecursos(recurso){
-    document.getElementById('txtRecurso').value = recurso;
+function FnModalBuscarRecursos(tabla){
+    document.getElementById('txtTabla').value = tabla;
     document.getElementById('txtBuscar').vale = '';
-    document.getElementById('msjBuscarRecursos').innerHTML = '';
-    document.getElementById("divRecursos").innerHTML = '<div class="col-12 fst-italic">Haga clic en buscar para obtener resultados.</div>';
+    document.getElementById("tblRecursos").innerHTML = '<div class="col-12 fst-italic">Haga clic en buscar para obtener resultados.</div>';
     modalBuscarRecursos.show();
 };
 
 async function FnBuscarRecursos(){
     vgLoader.classList.remove('loader-full-hidden');
-    document.getElementById('divRecursos').innerHTML = '';
     try {
-        const formData = new FormData();
-        formData.append('recurso', document.getElementById('txtRecurso').value);
-        formData.append('nombre', document.getElementById('txtBuscar').value);
+        let tabla=document.getElementById('txtTabla').value;
+        let url='';
+        switch (tabla) {
+            case 'sistema':
+                url='/gesman/search/BuscarSistemas.php';  
+                break;
+            case 'origen':
+                url='/gesman/search/BuscarOrigenes.php';
+                break;
+            case 'supervisor':
+                url='/gesman/search/BuscarSupervisores.php';
+                break;
+            case 'contacto':
+                url='/gesman/search/BuscarContactos.php';
+                break;
+            default:
+                throw new Error("No se reconoce la Tabla.");
+        }
 
-        const response = await fetch('/gesman/search/ListarRecursos.php', {
+        const formData = new FormData();
+        formData.append('nombre', document.getElementById('txtBuscar').value);
+        formData.append('estado', 2);
+        formData.append('pagina', 0);
+
+        const response = await fetch(url, {
             method:'POST',
             body: formData
+        });//.then(response=>response.text()).then((response)=>{console.log(response)}).catch(err=>console.log(err));
+
+        if(!response.ok){throw new Error(`${response.status} ${response.statusText}`);}
+        const datos = await response.json();
+        if(!datos.res){throw new Error(datos.msg);}
+
+        document.getElementById('tblRecursos').innerHTML = '';
+
+        datos.data.forEach(elem => {
+            document.getElementById("tblRecursos").innerHTML += `
+            <div class="col-12 border-bottom mb-1 p-2 divselect" dataid='${elem.id}' datanombre='${elem.nombre}' onclick=FnCargarRecurso(this); return false>
+                ${elem.id} - ${elem.nombre}
+            </div>`;
         });
 
-        if(!response.ok){
-            throw new Error(`Error del servidor: ${response.status} ${response.statusText}`)
-        }
-
-        const datos = await response.json();
-        
-        if(datos.res){
-            datos.data.forEach(clase => {
-                document.getElementById("divRecursos").innerHTML += `
-                <div class="col-12 border-bottom mb-1 p-2 divselect" dataId='${clase.id}' dataNombre='${clase.nombre}' onclick=FnCargarRecurso(this); return false>
-                    ${clase.id} => ${clase.nombre}
-                </div>`;
-            });
-        }else{
-            document.getElementById('msjBuscarRecursos').innerHTML = `<div class="alert alert-danger m-0 p-1 text-center" role="alert">${datos.msg}</div>`;
-        }
-    } catch (error) {
-        document.getElementById('msjBuscarRecursos').innerHTML = `<div class="alert alert-danger m-0 p-1 text-center" role="alert">${error}</div>`;
+    } catch (ex) {
+        showToast(ex.message, 'bg-danger');
+    }finally{
+        setTimeout(function(){vgLoader.classList.add('loader-full-hidden');},500);
     }
-
-    await new Promise((resolve, reject) => {
-        setTimeout(function () {
-            vgLoader.classList.add('loader-full-hidden');
-        }, 500)
-    });
 }
 
 function FnCargarRecurso(recurso) {
-    switch (document.getElementById('txtRecurso').value) {
+    switch (document.getElementById('txtTabla').value) {
         case 'sistema':            
-            document.getElementById('txtIdSistema').value = recurso.getAttribute('dataId');
-            document.getElementById('txtSistema').value = recurso.getAttribute('dataNombre');
+            document.getElementById('txtSisId').value = recurso.getAttribute('dataid');
+            document.getElementById('txtSisNombre').value = recurso.getAttribute('datanombre');
             break;
         case 'origen':
-            document.getElementById('txtIdOrigen').value = recurso.getAttribute('dataId');
-            document.getElementById('txtOrigen').value = recurso.getAttribute('dataNombre');
+            document.getElementById('txtOriId').value = recurso.getAttribute('dataid');
+            document.getElementById('txtOriNombre').value = recurso.getAttribute('datanombre');
             break;
         case 'supervisor':
-            document.getElementById('txtSupervisor').value = recurso.getAttribute('dataNombre');
+            document.getElementById('txtSupervisor').value = recurso.getAttribute('datanombre');
             break;
         case 'contacto':
-            document.getElementById('txtContacto').value = recurso.getAttribute('dataNombre');
+            document.getElementById('txtCliContacto').value = recurso.getAttribute('datanombre');
             break;
         default:
-            document.getElementById('msjBuscarRecursos').innerHTML = `<div class="alert alert-danger m-0 p-1 text-center" role="alert">No se reconoce el recurso.</div>`;
             break;
     }
     modalBuscarRecursos.hide();
-    return false;
 }
 
 async function FnModificarOrden(){
     vgLoader.classList.remove('loader-full-hidden');
     try {
         const formData = new FormData();
-        formData.append('idot', document.getElementById('txtIdOt').value);
+        formData.append('id', document.getElementById('txtId').value);
         formData.append('fecha', document.getElementById('txtFecha').value);
-        formData.append('idsistema', document.getElementById('txtIdSistema').value);
-        formData.append('sistema', document.getElementById('txtSistema').value);
-        formData.append('idorigen', document.getElementById('txtIdOrigen').value);
-        formData.append('origen', document.getElementById('txtOrigen').value);
+        formData.append('sisid', document.getElementById('txtSisId').value);
+        formData.append('sisnombre', document.getElementById('txtSisNombre').value);
+        formData.append('oriid', document.getElementById('txtOriId').value);
+        formData.append('orinombre', document.getElementById('txtOriNombre').value);
         formData.append('supervisor', document.getElementById('txtSupervisor').value);
-        formData.append('contacto', document.getElementById('txtContacto').value);
-        formData.append('km', document.getElementById('txtKm').value);
-        formData.append('actividad', document.getElementById('txtActividad').value);
-        formData.append('descripcion', document.getElementById('txtDescripcion').value);
-        formData.append('observacion', document.getElementById('txtObservacion').value);
+        formData.append('clicontacto', document.getElementById('txtCliContacto').value);
+        formData.append('equkm', document.getElementById('txtEquKm').value);
+        formData.append('equhm', document.getElementById('txtEquHm').value);
+        formData.append('actividades', document.getElementById('txtActividades').value);
+        formData.append('trabajos', document.getElementById('txtTrabajos').value);
+        formData.append('observaciones', document.getElementById('txtObservaciones').value);
 
         const response = await fetch('/gesman/update/ModificarOrden.php', {
             method:'POST',
             body: formData
-        });
+        });//.then(response=>response.text()).then((response)=>{console.log(response)}).catch(err=>console.log(err));
 
-        if(!response.ok){
-            throw new Error(`Error del servidor: ${response.status} ${response.statusText}`)
-        }
-
+        if (!response.ok) { throw new Error(`${response.status} ${response.statusText}`);}
         const datos = await response.json();
-        
-        if(datos.res){
-            location.reload();
-        }else{
-            throw new Error(datos.msg)
-        }
-    } catch (error) {
-        alert(error);
+        if (!datos.res) { throw new Error(`${datos.msg}`); }
+
+        setTimeout(function(){location.reload();},500);
+    } catch (ex) {
+        showToast(ex.message, 'bg-danger');
+        setTimeout(function(){vgLoader.classList.add('loader-full-hidden');},1000);
     }
-
-    await new Promise((resolve, reject) => {
-        setTimeout(function () {
-            vgLoader.classList.add('loader-full-hidden');
-        }, 500)
-    });
-
-    return false;
 }
 
-function FnResumenOrden(){
-    orden = document.getElementById('txtIdOt').value;
-    if(orden > 0){
-        window.location.href='/gesman/ResumenOrden.php?orden='+orden;
+function FnOrden(){
+    let id=document.getElementById('txtId').value;
+    if(id>0){
+        window.location.href='/gesman/Orden.php?id='+id;
     }
-    return false;
 }
 
-function FnListarOrdenes(){
+function FnOrdenes(){
     window.location.href='/gesman/Ordenes.php';
     return false;
 }

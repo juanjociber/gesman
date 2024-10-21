@@ -1,70 +1,47 @@
-<?php
+<?php 
     session_start();
-	require_once $_SERVER['DOCUMENT_ROOT'].'/gesman/connection/ConnGesmanDb.php';
 
-	$Bandera = false;
-	if(isset($_SESSION['CliId'])){
-		$Bandera = true;
-	}
+    require_once $_SERVER['DOCUMENT_ROOT']."/gesman/connection/ConnGesmanDb.php";
+    require_once $_SERVER['DOCUMENT_ROOT']."/gesman/data/OrdenesData.php";
 
-	$data['data'] = array();
-	$data['res'] = false;
-	$data['pag'] = 0;
-	$data['msg'] = 'Error del sistema.';
+    $datos = array('data'=>array(), 'res'=>false, 'pag'=>0, 'msg'=>'Error general.');
 
-	if($Bandera == true && $_SERVER['REQUEST_METHOD'] === 'POST'){
-		$pagina = 0;
-		$query = "";
+    try {
+        $conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        if(empty($_SESSION['CliId'])){throw new Exception("Usuario no tiene Autorización.");}
 
-		if(!empty($_POST['pagina'])){
-			$pagina = (int)$_POST['pagina'];
-		}
-		
-		if(!empty($_POST['orden'])){
-			$query = " and ot='".$_POST['orden']."'";
-		}else{
-			if(!empty($_POST['equipo'])){
-				$query .=" and idactivo=".$_POST['equipo'];
-			}
+        $orden=array(
+            'cliid'=>$_SESSION['CliId'],
+            'equid'=>empty($_POST['equid'])?0:$_POST['equid'],
+            'sisid'=>empty($_POST['sisid'])?0:$_POST['sisid'],
+            'oriid'=>empty($_POST['oriid'])?0:$_POST['oriid'],
+            'nombre'=>empty($_POST['nombre'])?'':$_POST['nombre'],
+            'fechainicial'=>empty($_POST['fechainicial'])?'':$_POST['fechainicial'],
+            'fechafinal'=>empty($_POST['fechafinal'])?'':$_POST['fechafinal'],
+            'actnombre'=>empty($_POST['actividad'])?'':$_POST['actividad'],
+            'estado'=>empty($_POST['estado'])?0:$_POST['estado'],
+            'pagina'=>empty($_POST['pagina'])?0:$_POST['pagina']
+        );
 
-			if(!empty($_POST['fechainicial']) && !empty($_POST['fechafinal'])){
-				$query .= " and fechainicial between '".$_POST['fechainicial']."' and '".$_POST['fechafinal']."'";
-			}
-		}
-		
-		try{
-			$conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			$stmt=$conmy->prepare("select idot, ot, activo, tipoot, fechainicial, actividad, estado from man_ots where idcliente=:IdCliente".$query." limit :Pagina, 20;");
-			$stmt->bindParam(':IdCliente', $_SESSION['CliId'], PDO::PARAM_INT); //$stmt->bindParam(':IdCliente', $_POST['empresa'], PDO::PARAM_INT);
-			$stmt->bindParam(':Pagina', $pagina, PDO::PARAM_INT);
-			$stmt->execute();
-			$n=$stmt->rowCount();		
-			if($n>0){
-				while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-					$data['data'][] = array(
-						'id' => $row['idot'],
-                        'ot' => $row['ot'],
-                        'activo' => $row['activo'],
-						'tipoot' => $row['tipoot'],
-						'fecha' => $row['fechainicial'],
-						'actividad' => $row['actividad'],
-						'estado' => (int)$row['estado']
-					);
-				}
-				$data['res'] = true;
-				$data['msg'] = 'Ok.';
-				$data['pag'] = $n;
-			}else{
-				$data['msg'] = 'No se encontró resultados.';
-			}
-			$stmt = null;
-		}catch(PDOException $e){
-			$stmt = null;
-			$data['msg'] = $e->getMessage();
-		}
-	}else{
-		$data['msg'] = 'Usuario no autorizado.';
-	}
+        $response=FnBuscarOrdenes($conmy, $orden);
 
-	echo json_encode($data);
+        if ($response['pag']>0) {
+            $datos['res'] = true;
+            $datos['msg'] = 'Ok.';
+            $datos['data'] = $response['data'];
+            $datos['pag'] = $response['pag'];
+        } else {
+            $datos['msg'] = 'No se encontró resultados.';
+        }
+        $conmy = null;
+    } catch(PDOException $ex) {
+        $datos['msg'] = $ex->getMessage();
+        $conmy = null;
+    } catch (Exception $ex) {
+        $datos['msg'] = $ex->getMessage();
+        $conmy = null;
+    }
+
+    echo json_encode($datos);
+
 ?>

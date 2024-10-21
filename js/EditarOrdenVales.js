@@ -111,7 +111,7 @@ async function FnAgregarVale(){
             body:JSON.stringify({
                 CliId:document.getElementById('txtCliId').value,
                 WhId: document.getElementById('txtWhId').value,
-                OtId:document.getElementById('txtOtId').value,
+                OtId:document.getElementById('txtId').value,
                 OtNombre:document.getElementById('txtOtNombre').value,
                 OtTipo:document.getElementById('txtOtTipo').value,
                 Equipo:document.getElementById('txtOtEquipo').value,
@@ -168,9 +168,9 @@ async function FnModalVerVale(id){
 }
 
 function FnResumenOrden(){
-    orden = document.getElementById('txtOtId').value;
-    if(orden > 0){
-        window.location.href='/gesman/ResumenOrden.php?orden='+orden;
+    let id = document.getElementById('txtId').value;
+    if(id > 0){
+        window.location.href='/gesman/Orden.php?id='+id;
     }
     return false;
 }

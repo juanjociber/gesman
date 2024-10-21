@@ -1,9 +1,10 @@
 <?php
-// $hostname = '192.168.40.8';
+//$hostname = '192.168.40.8';
 $hostname='localhost';
 $database = 'bdgesman';
 // $username = 'gpemsac';
 // $password='gpemsac$';
+
 $username = 'root';
 $password='mysql';
 
