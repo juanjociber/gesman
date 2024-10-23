@@ -43,7 +43,7 @@
         if($id>0){
             $datos['res']=true;
             $datos['id']=$id;
-            $datos['msg']='Se agregó el Archivo.';
+            $datos['msg']='Registro exitoso.';
         }
 
         $conmy = null;
