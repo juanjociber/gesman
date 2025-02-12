@@ -35,12 +35,13 @@
             'ordid'=>$orden['id'],
             'equid'=>$equipo['id'],
             'cliid'=>$cliente['id'],
+            'supid'=>$_SESSION['gesman']['PerId'],
             'fecha'=>$_POST['fecha'],
             'ordnombre'=>$orden['nombre'],
             'clinombre'=>$cliente['nombre'],
             'clidireccion'=>$cliente['direccion'],
             'clicontacto'=>$orden['clicontacto'],
-            'supervisor'=>$_SESSION['gesman']['Alias'],
+            'supnombre'=>$_SESSION['gesman']['Alias'],
             'equnombre'=>$equipo['nombre'],
             'equmarca'=>$equipo['marca'],
             'equmodelo'=>$equipo['modelo'],
@@ -53,7 +54,7 @@
         );
 
         $id=FnAgregarInforme($conmy, $infome);
-        if($id==0){throw new Exception("Error agregando el Informe.");}
+        if($id==0){throw new Exception("Error agregando el Informes.");}
 
         $actividades=array();
 
@@ -61,6 +62,7 @@
             $actividades[]=array(
                 'infid'=>$id,
                 'ownid'=>0,
+                'orden'=>0,
                 'acttipo'=>'ant',
                 'actnombre'=>$orden['trabajos'],
                 'diagnostico'=>null,
@@ -74,10 +76,12 @@
         }        
 
         if(count($archivos)>0){
+            $i=1;
             foreach ($archivos as $key=>$valor) {
                 $actividades[]=array(
                     'infid'=>$id,
                     'ownid'=>0,
+                    'orden'=>$i,
                     'acttipo'=>'act',
                     'actnombre'=>empty($valor['titulo'])?'-':$valor['titulo'],
                     'diagnostico'=>null,
@@ -88,6 +92,7 @@
                     'arctipo'=>$valor['tipo'],
                     'usuario'=>$USUARIO
                 );
+                $i+=1;
             }
         }
 

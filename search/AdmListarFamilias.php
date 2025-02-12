@@ -2,7 +2,7 @@
     session_start();
     require_once $_SERVER['DOCUMENT_ROOT']."/gesman/data/SesionData.php";
     require_once $_SERVER['DOCUMENT_ROOT']."/gesman/connection/ConnGesmanDb.php";
-    require_once $_SERVER['DOCUMENT_ROOT']."/gesman/data/EquiposData.php";
+    require_once $_SERVER['DOCUMENT_ROOT']."/gesman/data/FamiliasData.php";
 
     $datos = array('data'=>array(), 'res'=>false, 'msg'=>'Error general.');
 
@@ -14,11 +14,10 @@
         
         $search=array(
             'cliid'=>$_POST['cliid'],
-            'famid'=>empty($_POST['famid'])?null:$_POST['famid'],
-            'nombre'=>empty($_POST['nombre'])?null:$_POST['nombre']
+            'nombre'=>empty($_POST['nombre'])?'':$_POST['nombre']
         );
 
-        $data=FnListarEquipos($conmy, $search);
+        $data=FnListarFamilias($conmy, $search);
         $datos['res']=true;
         $datos['msg']='Ok.';
         $datos['data']=$data;

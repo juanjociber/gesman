@@ -132,12 +132,17 @@ function FnModalAgregarSistema(){
 
 async function FnAgregarSistema(){
     loader.classList.remove('loader-full-hidden');
-    try {        
-        const formData = new FormData();
-        formData.append('nombre', document.getElementById('txtNombre2').value);
+    try {
+        let json = {
+            nombre : document.getElementById('txtNombre2').value
+        }
+
         const response = await fetch("/gesman/insert/AgregarSistema.php",{
-            method: "POST",
-            body: formData
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(json)
         });//.then(response=>response.text()).then((response)=>{console.log(response)}).catch(err=>console.log(err));
 
         if(!response.ok){throw new Error(`${response.status} ${response.statusText}`)}
@@ -166,14 +171,19 @@ function FnModalModificarSistema(sistema){
 
 async function FnModificarSistema(){
     loader.classList.remove('loader-full-hidden');
-    try {        
-        const formData = new FormData();
-        formData.append('id', document.getElementById('txtId3').value);
-        formData.append('nombre', document.getElementById('txtNombre3').value);
-        formData.append('estado', document.getElementById('cbEstado3').value);
+    try {
+        let json = {
+            id: document.getElementById('txtId3').value,
+            nombre: document.getElementById('txtNombre3').value,
+            estado: document.getElementById('cbEstado3').value
+        }
+
         const response = await fetch("/gesman/update/ModificarSistema.php",{
-            method: "POST",
-            body: formData
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(json)
         });//.then(response=>response.text()).then((response)=>{console.log(response)}).catch(err=>console.log(err));
 
         if(!response.ok){throw new Error(`${response.status} ${response.statusText}`)}

@@ -10,15 +10,15 @@
         $conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         if(!FnValidarSesion()){throw new Exception("Se ha perdido la conexión.");}
         if(!FnValidarSesionManNivel1()){throw new Exception("Usuario no autorizado.");}
-        if(empty($_POST['cliid'])){throw new Exception("La información esta incompleta.");}
-        
+       
         $search=array(
-            'cliid'=>$_POST['cliid'],
-            'famid'=>empty($_POST['famid'])?null:$_POST['famid'],
-            'nombre'=>empty($_POST['nombre'])?null:$_POST['nombre']
+            'id'=>empty($_POST['id'])?0:$_POST['id'],//para validar que no se busque el mis equipo. debe ser otro.
+            'cliid'=>$_SESSION['gesman']['CliId'],
+            'famid'=>empty($_POST['famid'])?0:$_POST['famid'],
+            'nombre'=>empty($_POST['nombre'])?'':$_POST['nombre']
         );
 
-        $data=FnListarEquipos($conmy, $search);
+        $data=FnListarFamiliaEquipos($conmy, $search);
         $datos['res']=true;
         $datos['msg']='Ok.';
         $datos['data']=$data;

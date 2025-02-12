@@ -6,15 +6,19 @@
 
     $datos=array('res'=>false, 'id'=>0, 'msg'=>'Error General.');
 
+    $input=file_get_contents('php://input');
+	$json=json_decode($input, true);
+
     try {
         $conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         if(!FnValidarSesion()){throw new Exception("Se ha perdido la conexión.");}
         if(!FnValidarSesionManNivel3()){throw new Exception("Usuario no autorizado.");}
-        if(empty($_POST['nombre'])){throw new Exception("La información esta incompleta.");}
+        if(empty($json['nombre'])){throw new Exception("La información esta incompleta.");}
+        if(FnValidarSistemaDuplicado($conmy, array('id'=>0, 'cliid'=>$_SESSION['gesman']['CliId'], 'nombre'=>$json['nombre']))>0){throw new Exception("El Sistema ya existe.");};
 
         $sistema=array(
             'cliid'=>$_SESSION['gesman']['CliId'],
-            'nombre'=>$_POST['nombre'],
+            'nombre'=>$json['nombre'],
             'usuario'=>date('Ymd-His').' ('.$_SESSION['gesman']['Nombre'].')'
         );
 

@@ -6,28 +6,35 @@
 
     $datos = array('res'=>false, 'msg'=>'Error general.');
 
+    $input=file_get_contents('php://input');
+	$json=json_decode($input, true);
+
     try {
         $conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         if(!FnValidarSesion()){throw new Exception("Se ha perdido la conexión.");}
         if(!FnValidarSesionManNivel1()){throw new Exception("Usuario no autorizado.");}
-        if(empty($_POST['id']) || empty($_POST['fecha']) || empty($_POST['actividades'])){throw new Exception("La información esta incompleta.");}
+        if(empty($json['id']) || empty($json['equid']) || empty($json['equnombre']) || empty($json['fecha']) || empty($json['actnombre'])){throw new Exception("La información esta incompleta.");}
 
         $orden=array(
-            'id'=>$_POST['id'],
+            'id'=>$json['id'],
             'cliid'=>$_SESSION['gesman']['CliId'],
-            'sisid'=>empty($_POST['sisid'])?0:$_POST['sisid'],
-            'oriid'=>empty($_POST['oriid'])?0:$_POST['oriid'],
-            'actid'=>empty($_POST['actid'])?0:$_POST['actid'],
-            'sisnombre'=>empty($_POST['sisnombre'])?null:$_POST['sisnombre'],
-            'orinombre'=>empty($_POST['orinombre'])?null:$_POST['orinombre'],
-            'fecha'=>$_POST['fecha'],
-            'actividades'=>$_POST['actividades'],
-            'trabajos'=>empty($_POST['trabajos'])?null:$_POST['trabajos'],
-            'observaciones'=>empty($_POST['observaciones'])?null:$_POST['observaciones'],
-            'equkm'=>empty($_POST['equkm'])?0:$_POST['equkm'],
-            'equhm'=>empty($_POST['equhm'])?0:$_POST['equhm'],
-            'supervisor'=>empty($_POST['supervisor'])?null:$_POST['supervisor'],
-            'clicontacto'=>empty($_POST['clicontacto'])?null:$_POST['clicontacto'],
+            'equid'=>$json['equid'],
+            'famid'=>empty($json['famid'])?0:$json['famid'],
+            'sisid'=>empty($json['sisid'])?0:$json['sisid'],
+            'oriid'=>empty($json['oriid'])?0:$json['oriid'],
+            'actid'=>empty($json['actid'])?0:$json['actid'],
+            'equnombre'=>$json['equnombre'],
+            'famnombre'=>empty($json['famnombre'])?null:$json['famnombre'],
+            'sisnombre'=>empty($json['sisnombre'])?null:$json['sisnombre'],
+            'orinombre'=>empty($json['orinombre'])?null:$json['orinombre'],
+            'fecha'=>$json['fecha'],
+            'actnombre'=>$json['actnombre'],
+            'trabajos'=>empty($json['trabajos'])?null:$json['trabajos'],
+            'observaciones'=>empty($json['observaciones'])?null:$json['observaciones'],
+            'equkm'=>empty($json['equkm'])?0:$json['equkm'],
+            'equhm'=>empty($json['equhm'])?0:$json['equhm'],
+            'supervisor'=>empty($json['supervisor'])?null:$json['supervisor'],
+            'clicontacto'=>empty($json['clicontacto'])?null:$json['clicontacto'],
             'usuario'=>date('Ymd-His').' ('.$_SESSION['gesman']['Nombre'].')'
         );
 

@@ -93,6 +93,67 @@ function FnModalVerArchivo(archivo){
     }
 };
 
+
+function FnDeshabilitarBoton(elem){
+    elem.style.pointerEvents = 'none';
+    elem.style.color = 'gray';
+}
+
+async function FnBuscarEquipoComponentes(elem){
+    loader.classList.remove('loader-full-hidden');
+    try {
+        FnDeshabilitarBoton(elem);
+        const formData = new FormData();
+        formData.append('ownid', elem.getAttribute('dataid'));
+        const response = await fetch('/gesman/search/BuscarEquipoComponentes.php', {
+            method:'POST',
+            body: formData
+        });//.then(response=>response.text()).then((response)=>{console.log(response)}).catch(err=>console.log(err));
+
+        if (!response.ok) { throw new Error(`${response.status} ${response.statusText}`);}
+        const datos = await response.json();
+        if (!datos.res) { throw new Error(`${datos.msg}`); }
+
+        document.getElementById('tblEquipo'+elem.getAttribute('dataid')).innerHTML = '';
+        datos.data.forEach(data=>{
+            let elemEstado='';
+            switch (data.estado) {
+                case 1:
+                    elemEstado='<span class="badge bg-danger">INACTIVO</span>';
+                    break;
+                case 2:
+                    elemEstado='<span class="badge bg-success">ACTIVO</span>';
+                    break;        
+                default:
+                    elemEstado='<span class="badge bg-secondary">UNKNOWN</span>';
+            }
+
+            document.getElementById('tblEquipo'+elem.getAttribute('dataid')).innerHTML +=`
+            <div style="margin-left:7px;">
+                <div class="d-flex justify-content-between">
+                    <p class="m-0">
+                        <i class="fas fa-plus-square" dataid=${data.id} onclick="FnBuscarEquipoComponentes(this); return false;" style="cursor: pointer;"></i>
+                        <span>${data.famnombre} ${data.nombre} ${data.marca} ${data.modelo} ${data.serie}</span>
+                        <i class="fas fa-link text-primary" style="cursor:pointer;" onclick="FnEquipo(${data.id}); return false;"></i>
+                    </p>
+                    <p class="m-0">${elemEstado}</p>
+                </div>            
+                <div id="tblEquipo${data.id}"></div>
+            </div>`;
+        });
+    } catch (ex) {
+        showToast(ex.message,'bg-danger');
+    } finally {
+        setTimeout(function(){loader.classList.add('loader-full-hidden');},500);
+    }
+}
+
+function FnEquipo(id){
+    if(id > 0){
+        window.location.href='/gesman/Equipo.php?id='+id;
+    }
+}
+
 /*async function FnVerArchivo(archivo){
     loader.classList.remove('loader-full-hidden');
     try{

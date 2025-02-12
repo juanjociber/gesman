@@ -198,7 +198,7 @@ async function FnAgregarVale(){
             ordid:document.getElementById('txtId').value,
             ordnombre:document.getElementById('txtOrdNombre').value,
             ordtipo:document.getElementById('txtOrdTipo').value,
-            equcodigo:document.getElementById('txtEquCodigo').value,
+            equcodigo:document.getElementById('txtEquNombre').value,
             clivale:document.getElementById('txtCliVale').value,
             clifecha:document.getElementById('dtpCliFecha').value,
             tecnico:document.getElementById('txtSupervisor').value,

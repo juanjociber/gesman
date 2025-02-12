@@ -15,103 +15,77 @@ window.addEventListener('load', function() {
     const datos = sessionStorage.getItem('gpem_ordenes');
     if (datos){FnMostrarRegistros(JSON.parse(datos));}
     loader.classList.add('loader-full-hidden');
-});
 
-$(document).ready(function() {
-    $('#cbEquipo').select2({
-        width: 'resolve', //Personalizar el alto del select, aplicar estilo.
-        ajax: {
-            delay: 450, //Tiempo de demora para buscar
-            url: '/gesman/search/ListarEquipos.php',
-            type: 'POST',
-            dataType: 'json',
-            data: function (params) {
-                return {
-                    codigo:params.term
-                };
+    $(document).ready(function() {
+        $('#cbEquipo').select2({
+            width: 'resolve', //Personalizar el alto del select, aplicar estilo.
+            ajax: {
+                delay: 450,
+                url: '/gesman/search/ListarEquipos.php',
+                type: 'POST',
+                dataType: 'json',
+                data: function (params) {
+                    return {
+                        nombre:params.term
+                    };
+                },
+                processResults:function(datos){
+                    return {
+                        results:datos.data.map(function(elem) {
+                            return {
+                                id:elem.id,
+                                text:elem.nombre
+                            };
+                        })
+                    }
+                },
+                cache: true
             },
-            processResults:function(datos){
-                return {
-                    results:datos.data.map(function(elem) {
-                        return {
-                            id:elem.id,
-                            text:elem.codigo,
-                        };
-                    })
-                }
+            placeholder: 'Seleccionar',
+            allowClear: true,
+            minimumInputLength:1
+        });
+    
+        $('#cbEquipo2').select2({
+            dropdownParent: $('#modalAgregarOrden'),
+            width: 'resolve', //Personalizar el alto del select, aplicar estilo.
+            ajax: {
+                delay: 450,
+                url: '/gesman/search/ListarEquipos.php',
+                type: 'POST',
+                dataType: 'json',
+                data: function(params){
+                    return {
+                        nombre:params.term
+                    };
+                },
+                processResults:function(datos) {
+                    return {
+                        results:datos.data.map(function(elem){
+                            return {
+                                id: elem.id,
+                                text: elem.nombre,
+                                km: elem.km,
+                                hm: elem.hm,
+                                famid:elem.famid,
+                                famnombre:elem.famnombre
+                            };
+                        })
+                    }
+                },
+                cache: true
             },
-            cache: true
-        },
-        placeholder: 'Seleccionar',
-        allowClear: true,
-        minimumInputLength:1
+            placeholder: 'Seleccionar'
+        }).on('select2:select',function(e){
+            document.getElementById('txtEquId2').value=e.params.data.id;
+            document.getElementById('txtEquNombre2').value=e.params.data.text;
+            document.getElementById('txtEquKm2').value=e.params.data.km;
+            document.getElementById('txtEquHm2').value=e.params.data.hm;
+            document.getElementById('txtFamId2').value=e.params.data.famid;
+            document.getElementById('txtFamNombre2').value=e.params.data.famnombre;
+        });
     });
-});
 
-$(document).ready(function() {
-    $('#cbEquipo2').select2({
-        dropdownParent: $('#modalAgregarOrden'),
-        width: 'resolve', //Personalizar el alto del select, aplicar estilo.
-        ajax: {
-            delay: 450,
-            url: '/gesman/search/ListarEquipos.php',
-            type: 'POST',
-            dataType: 'json',
-            data: function(params){
-                return {
-                    codigo:params.term
-                };
-            },
-            processResults:function(datos) {
-                return {
-                    results:datos.data.map(function(elem){
-                        return {
-                            id: elem.id,
-                            text: elem.codigo,
-                            km: elem.km,
-                            hm: elem.hm
-                        };
-                    })
-                }
-            },
-            cache: true
-        },
-        placeholder: 'Seleccionar',
-        minimumInputLength:1 //Caracteres minimos para buscar
-    }).on('select2:select',function(e){
-        document.getElementById('txtEquKm2').value=e.params.data.km;
-        document.getElementById('txtEquHm2').value=e.params.data.hm;
-    });
-});
-
-$(document).ready(function() {
-    $('#cbSistema2').select2({
-        dropdownParent: $('#modalAgregarOrden'),
-        width: 'resolve', //Personalizar el alto del select, aplicar estilo.
-        ajax: {
-            delay: 450,
-            url: '/gesman/search/ListarSistemas.php',
-            type: 'POST',
-            dataType: 'json',
-            data: function(params){
-                return {
-                    nombre: params.term
-                };
-            },
-            processResults:function(datos){
-                return {
-                    results:datos.data.map(function(elem){
-                        return {
-                            id: elem.id,
-                            text: elem.nombre
-                        };
-                    })
-                }
-            },
-            cache: true
-        },
-        placeholder: 'Seleccionar'
-    });
 });
 
 function FnModalAgregarOrden(){
@@ -122,27 +96,35 @@ function FnModalAgregarOrden(){
 
 async function FnAgregarOrden(){
     loader.classList.remove('loader-full-hidden');
-    try {        
-        const formData = new FormData();
-        formData.append('fecha', document.getElementById('txtFecha2').value);
-        formData.append('nombre', document.getElementById('txtNombre2').value);
-        formData.append('equid', document.getElementById('cbEquipo2').value);
-        formData.append('equcodigo', document.getElementById("cbEquipo2").options[document.getElementById("cbEquipo2").selectedIndex].text);
-        formData.append('equkm', document.getElementById('txtEquKm2').value);
-        formData.append('equhm', document.getElementById('txtEquHm2').value);
-        formData.append('tipid', document.getElementById('cbTipo2').value);
-        formData.append('tipnombre', document.getElementById("cbTipo2").options[document.getElementById("cbTipo2").selectedIndex].text);        
-        formData.append('sisid', document.getElementById('cbSistema2').value);
-        formData.append('sisnombre', document.getElementById("cbSistema2").options[document.getElementById("cbSistema2").selectedIndex].text);
-        formData.append('actnombre', document.getElementById('txtActNombre2').value);
+    try {
+        let json = {
+            fecha: document.getElementById('txtFecha2').value,
+            nombre: document.getElementById('txtNombre2').value,
+            equid: document.getElementById('txtEquId2').value,            
+            equnombre : document.getElementById('txtEquNombre2').value,
+            equkm: document.getElementById('txtEquKm2').value,
+            equhm: document.getElementById('txtEquHm2').value,
+            tipid: document.getElementById('cbTipo2').value,
+            tipnombre: document.getElementById("cbTipo2").options[document.getElementById("cbTipo2").selectedIndex].text,      
+            famid: document.getElementById('txtFamId2').value,
+            famnombre: document.getElementById("txtFamNombre2").value,
+            actnombre: document.getElementById('txtActNombre2').value
+        }
+
+        console.log(json);
+
         const response = await fetch("/gesman/insert/AgregarOrden.php", {
-            method: "POST",
-            body: formData
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(json)
         });//.then(response=>response.text()).then((response)=>{console.log(response)}).catch(err=>console.log(err));
 
         if(!response.ok){throw new Error(`${response.status} ${response.statusText}`)}
         const datos = await response.json();
         if(!datos.res){throw new Error(datos.msg);}
+
         setTimeout(()=>{window.location.href='/gesman/EditarOrden.php?id='+datos.id;},1000);
     } catch (ex) {
         showToast(ex.message, 'bg-danger');
@@ -178,13 +160,13 @@ async function FnBuscarOrdenes2(){
             cliid : search.cliente,
             equid : search.equipo,
             tipid : search.tipo,
-            sisid : search.sistema,
+            famid : search.sistema,
             oriid : search.origen,
             nombre : search.orden,
             actnombre : search.actividad,
             fechainicial : search.fechaInicial,
             fechafinal : search.fechaFinal,
-            pagina : search.paginaActual
+            pagina : search.paginasTotal
         }
         const response = await fetch('/gesman/search/BuscarOrdenes.php', {
             method: 'POST',
@@ -235,7 +217,7 @@ function FnMostrarRegistros(datos){
                     <p class='m-0'><span class="fw-bold">${orden.nombre}</span> <span style="font-size: 12px; font-style: italic;">${orden.fecha}</span></p>
                     <p class='m-0'>${estado}</p>
                 </div>
-                <div>${orden.equcodigo} ${orden.tipnombre} ${orden.actnombre}</div>
+                <div>${orden.equnombre} ${orden.tipnombre} ${orden.actnombre}</div>
             </div>
         </div>`;
     });

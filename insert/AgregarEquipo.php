@@ -6,35 +6,31 @@
 
     $datos=array('res'=>false, 'id'=>0, 'msg'=>'Error General.');
 
+    $input=file_get_contents('php://input');
+	$json=json_decode($input, true);
+
     try {
         $conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         if(!FnValidarSesion()){throw new Exception("Se ha perdido la conexión.");}
         if(!FnValidarSesionManNivel3()){throw new Exception("Usuario no autorizado.");}
-        if(empty($_POST['codigo'])){throw new Exception("La información esta incompleta.");}
-
-        if(FnValidarEquipoDuplicado($conmy, $_SESSION['gesman']['CliId'], $_POST['codigo'])>0){throw new Exception("El equipo ya esta registrado.");}
+        if(empty($json['nombre']) || empty($json['famid']) || empty($json['famnombre'])){throw new Exception("La información esta incompleta.");}
+        if(!empty($json['famownid']) && empty($json['ownid'])){throw new Exception("Esta familia debe tener un equipo padre.");}//si el padre de la familia seleccionada es mayor a cero y no tiene equipo padre seleccionado
+        if(FnValidarEquipoDuplicado($conmy, array('id'=>0, 'cliid'=>$_SESSION['gesman']['CliId'], 'nombre'=>$json['nombre']))>0){throw new Exception("El equipo ya esta registrado.");}
         
         $equipo=array();
         $equipo['cliid']=$_SESSION['gesman']['CliId'];
-        $equipo['floid']=empty($_POST['floid'])?0:$_POST['floid'];
-        $equipo['codigo']=$_POST['codigo'];
-        $equipo['nombre']=empty($_POST['nombre'])?null:$_POST['nombre'];
-        $equipo['flonombre']=empty($_POST['flonombre'])?null:$_POST['flonombre'];
-        $equipo['marca']=empty($_POST['marca'])?null:$_POST['marca'];
-        $equipo['modelo']=empty($_POST['modelo'])?null:$_POST['modelo'];
-        $equipo['serie']=empty($_POST['serie'])?null:$_POST['serie'];
-        $equipo['anio']=empty($_POST['anio'])?null:$_POST['anio'];;
-        $equipo['fabricante']=empty($_POST['fabricante'])?null:$_POST['fabricante'];
-        $equipo['procedencia']=empty($_POST['procedencia'])?null:$_POST['procedencia'];
-        $equipo['datos']=empty($_POST['datos'])?null:$_POST['datos'];
-        $equipo['ubicacion']=empty($_POST['ubicacion'])?null:$_POST['ubicacion'];
-        $equipo['km']=empty($_POST['km'])?0:$_POST['km'];
-        $equipo['hm']=empty($_POST['hm'])?0:$_POST['hm'];
-        $equipo['motor']=empty($_POST['motor'])?null:$_POST['motor'];
-        $equipo['transmision']=empty($_POST['transmision'])?null:$_POST['transmision'];
-        $equipo['diferencial']=empty($_POST['diferencial'])?null:$_POST['diferencial'];
-        $equipo['placa']=empty($_POST['placa'])?null:$_POST['placa'];
+        $equipo['ownid']=empty($json['ownid'])?0:$json['ownid']; 
+        $equipo['nombre']=$json['nombre'];
+        $equipo['marca']=empty($json['marca'])?null:$json['marca'];
+        $equipo['modelo']=empty($json['modelo'])?null:$json['modelo'];
+        $equipo['serie']=empty($json['serie'])?null:$json['serie'];
+        $equipo['datos']=empty($json['datos'])?null:$json['datos'];
+        $equipo['km']=empty($json['km'])?0:$json['km'];
+        $equipo['hm']=empty($json['hm'])?0:$json['hm'];
+        $equipo['placa']=empty($json['equplaca'])?null:$json['placa'];
         $equipo['usuario']=date('Ymd-His').' ('.$_SESSION['gesman']['Nombre'].')';
+        $equipo['famid']=$json['famid'];
+        $equipo['famnombre']=$json['famnombre'];
 
         $id=FnAgregarEquipo($conmy, $equipo);
         if(empty($id)){throw new Exception("Error agregando el Equipo.");}

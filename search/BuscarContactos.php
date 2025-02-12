@@ -12,7 +12,7 @@
         if(!FnValidarSesionManNivel1()){throw new Exception("Usuario no autorizado.");}
 
         $contacto=array(
-            'cliid'=>$_SESSION['CliId'],
+            'cliid'=>$_SESSION['gesman']['CliId'],
             'nombre'=>empty($_POST['nombre'])?'':$_POST['nombre'],
             'estado'=>empty($_POST['estado'])?0:$_POST['estado'],
             'pagina'=>empty($_POST['pagina'])?0:$_POST['pagina']

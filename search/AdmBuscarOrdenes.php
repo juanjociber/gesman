@@ -19,6 +19,7 @@
             'cliid'=>$json['cliid'],
             'equid'=>empty($json['equid'])?0:$json['equid'],
             'tipid'=>empty($json['tipid'])?0:$json['tipid'],
+            'famid'=>empty($json['famid'])?0:$json['famid'],
             'sisid'=>empty($json['sisid'])?0:$json['sisid'],
             'oriid'=>empty($json['oriid'])?0:$json['oriid'],
             'nombre'=>empty($json['nombre'])?null:$json['nombre'],

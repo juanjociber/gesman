@@ -20,7 +20,6 @@ $(document).ready(function() {
                 };
             },
             processResults: function(datos){
-                console.log(datos);
                 return {
                     results:datos.data.map(function(elem) {
                         return {

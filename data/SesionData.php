@@ -1,12 +1,13 @@
 <?php 
     function FnAgregarSesion($usuario) {
         try {
-            $_SESSION['gesman']['Alias']=$usuario['pernombre'];
-            $_SESSION['gesman']['Nombre']=$usuario['usunombre'];
-            $_SESSION['gesman']['RolMan']=$usuario['rolman'];
             $_SESSION['gesman']['CliId']=0;
             $_SESSION['gesman']['CliOdoId']=0;
             $_SESSION['gesman']['CliWhId']=0;
+            $_SESSION['gesman']['PerId']=$usuario['perid'];
+            $_SESSION['gesman']['Alias']=$usuario['pernombre'];
+            $_SESSION['gesman']['Nombre']=$usuario['usunombre'];
+            $_SESSION['gesman']['RolMan']=$usuario['rolman'];
             $_SESSION['gesman']['CliNombre']='UNKNOWN';
             return true;
         } catch (Exception $ex) {

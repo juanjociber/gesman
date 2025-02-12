@@ -135,7 +135,7 @@
 
             $query.=" limit ".$search['pagina'].", 15";
 
-            $stmt = $conmy->prepare("select idactivo, codigo, marca, modelo, km, hm, fecha, estado, famid, ownid, fam_nombre from man_activos where idcliente=:CliId".$query.";");
+            $stmt = $conmy->prepare("select idactivo, codigo, marca, modelo, km, hm, estado, famid, ownid, fam_nombre from man_activos where idcliente=:CliId".$query.";");
             $stmt->execute(array(':CliId'=>$search['cliid']));
 			$n=$stmt->rowCount();
             if($n>0){
@@ -147,7 +147,6 @@
                         'modelo'=>$row['modelo'],
                         'km'=>$row['km'],
                         'hm'=>$row['hm'],
-                        'fecha'=>$row['fecha'],
                         'estado'=>(int)$row['estado'],
                         'famid'=>$row['famid'],
                         'ownid'=>$row['ownid'],
@@ -258,40 +257,6 @@
                 );
             }
             return $datos;
-        } catch (PDOException $e) {
-            throw new Exception($e->getMessage());
-        }
-    }
-
-    function FnModificarEquiposOdometro($conmy, $data) {
-        try {
-            $res=false;
-
-            $ids=array();
-            $km_case=array();
-            $hm_case=array();
-            $fecha_case=array();
-
-            foreach ($data as $item) {
-                $ids[] = $item['id'];
-                $km_case[] = "when {$item['id']} then {$item['km']}";
-                $hm_case[] = "when {$item['id']} then {$item['hm']}";
-                $fecha_case[] = "when {$item['id']} then '{$item['fecha']}'";
-            }
-
-            $sql="update man_activos
-                    set
-                        km=case idactivo ".implode(" ", $km_case)." end,
-                        hm=case idactivo ".implode(" ", $hm_case)." end,
-                        fecha=case idactivo ".implode(" ", $fecha_case)." end
-                    where idactivo in(".implode(", ", $ids).");";
-
-            $stmt=$conmy->prepare($sql);
-            $stmt->execute();
-            if($stmt->rowCount()>0){
-                $res=true;
-            }
-            return $res; 
         } catch (PDOException $e) {
             throw new Exception($e->getMessage());
         }

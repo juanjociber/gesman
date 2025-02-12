@@ -13,21 +13,19 @@
         $conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         if(!FnValidarSesion()){throw new Exception("Se ha perdido la conexión.");}
         if(!FnValidarSesionManNivel3()){throw new Exception("Usuario no autorizado.");}
-        if(empty($json['id'])){throw new Exception("La información esta incompleta.");}
+        if(!empty($json['famownid']) && empty($json['ownid'])){throw new Exception("Esta ruta debe tener un equipo padre.");}//si el padre de la familia seleccionada es mayor a cero y no tiene equipo padre seleccionado
+        if(empty($json['id']) || empty($json['famid'])){throw new Exception("La información esta incompleta.");}
 
         $equipo=array(
             'id'=>$json['id'],
             'cliid'=>$_SESSION['gesman']['CliId'],            
-            'marca'=>empty($json['marca'])?null:$json['marca'],
-            'modelo'=>empty($json['modelo'])?null:$json['modelo'],
-            'serie'=>empty($json['serie'])?null:$json['serie'],
-            'placa'=>empty($json['placa'])?null:$json['placa'],
-            'ubicacion'=>empty($json['ubicacion'])?null:$json['ubicacion'],
-            'datos'=>empty($json['datos'])?null:$json['datos'],
+            'famid'=>$json['famid'],
+            'ownid'=>empty($json['ownid'])?0:$json['ownid'],
+            'famnombre'=>empty($json['famnombre'])?null:$json['famnombre'],
             'usuario'=>date('Ymd-His').' ('.$_SESSION['gesman']['Nombre'].')'
         );
 
-        if(FnModificarEquipo($conmy, $equipo)){
+        if(FnModificarEquipoRuta($conmy, $equipo)){
             $datos['res'] = true;
             $datos['msg'] = 'Se modificó el Equipo.';
         }

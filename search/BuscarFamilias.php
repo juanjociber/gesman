@@ -2,7 +2,7 @@
     session_start();
     require_once $_SERVER['DOCUMENT_ROOT']."/gesman/data/SesionData.php";
     require_once $_SERVER['DOCUMENT_ROOT']."/gesman/connection/ConnGesmanDb.php";
-    require_once $_SERVER['DOCUMENT_ROOT']."/gesman/data/EquiposData.php";
+    require_once $_SERVER['DOCUMENT_ROOT']."/gesman/data/FamiliasData.php";
 
     $datos = array('data'=>array(), 'res'=>false, 'pag'=>0, 'msg'=>'Error general.');
 
@@ -11,15 +11,14 @@
         if(!FnValidarSesion()){throw new Exception("Se ha perdido la conexión.");}
         if(!FnValidarSesionManNivel1()){throw new Exception("Usuario no autorizado.");}
 
-        $equipo=array(
+        $familia=array(
             'cliid'=>$_SESSION['gesman']['CliId'],
-            'famid'=>empty($_POST['famid'])?0:$_POST['famid'],
             'nombre'=>empty($_POST['nombre'])?'':$_POST['nombre'],
             'estado'=>empty($_POST['estado'])?0:$_POST['estado'],
             'pagina'=>empty($_POST['pagina'])?0:$_POST['pagina']
         );
 
-        $response=FnBuscarEquipos($conmy, $equipo);
+        $response=FnBuscarFamilias($conmy, $familia);
 
         if ($response['pag']>0) {
             $datos['res'] = true;

@@ -19,6 +19,7 @@
             'equid'=>empty($json['equid'])?0:$json['equid'],
             'tipid'=>empty($json['tipid'])?0:$json['tipid'],
             'sisid'=>empty($json['sisid'])?0:$json['sisid'],
+            'famid'=>empty($json['famid'])?0:$json['famid'],
             'oriid'=>empty($json['oriid'])?0:$json['oriid'],
             'nombre'=>empty($json['nombre'])?null:$json['nombre'],
             'fechainicial'=>empty($json['fechainicial'])?null:$json['fechainicial'],

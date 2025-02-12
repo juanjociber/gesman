@@ -149,7 +149,7 @@ async function FnAgregarArchivo(){
         const response = await fetch('/gesman/insert/AgregarArchivo.php',{
             method:'POST',
             body: formData
-        });
+        });//.then(response=>response.text()).then((response)=>{console.log(response)}).catch(err=>console.log(err));
 
         if(!response.ok){throw new Error(`${response.status} ${response.statusText}`);}
         const datos = await response.json();

@@ -11,21 +11,6 @@
         header("HTTP/1.1 403 Forbidden");
         exit();
     }
-
-    require_once $_SERVER['DOCUMENT_ROOT'].'/gesman/connection/ConnGesmanDb.php';
-    require_once $_SERVER['DOCUMENT_ROOT']."/gesman/data/ClientesData.php";
-
-    $CLIENTES=array();
-
-    try{
-        $conmy->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $CLIENTES=FnListarClientes2($conmy);
-        $conmy==null;
-    } catch(PDOException $ex) {
-        $conmy = null;
-    } catch (Exception $ex) {
-        $conmy = null;
-    }
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -45,59 +30,59 @@
             color: black;
             text-decoration: none;
         }
+
         .divselect {
             cursor: pointer;
             transition: all .25s ease-in-out;
         }
+
         .divselect:hover {
             background-color: #ccd1d1;
             transition: background-color .5s;
         }
-        .container-wa{
-            position: absolute;
-            z-index: 3;
-            right: 0px;
-            margin:0px;
-            padding:0px;
+
+        .sticky-row {
+            position: -webkit-sticky; /* Para compatibilidad con navegadores webkit */
+            position: sticky;
+            top: 66px; /* Distancia desde la parte superior */
+            background-color: white; /* O el color que prefieras */
+            /*z-index: 1000;*/ /* Asegúrate de que esté por encima de otros elementos */
         }
-    </style>   
+    </style>    
 </head>
 
 <body>
-    
     <?php require_once $_SERVER['DOCUMENT_ROOT'].'/gesman/menu/sidebar.php';?>
-
     <div class="container section-top">        
-        <div class="row p-1">
-            <div class="col-12 border-bottom fw-bold m-0 fs-4"><?php echo $_SESSION['gesman']['CliNombre'];?><span class="text-secondary" style="font-style: italic; font-size: 12px;"> Predeterminado</span></div>
+        <div class="row sticky-row mb-1">
+            <div class="col-12 border-bottom">
+                <div class="row p-2">
+                    <div class="col-12 col-sm-6 fw-bold fs-5">
+                        <?php echo $_SESSION['gesman']['CliNombre'];?><span class="text-secondary" style="font-style: italic; font-size: 12px;"> Predeterminado</span>
+                    </div>
+                    <div class="col-12 col-sm-6 p-0">
+                        <input type="text" id="txtBuscar" class="form-control" placeholder="Buscar"/>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="row p-2 position-relative" style="z-index:0;">
-            <?php
-            if(count($CLIENTES)>0){
-                foreach($CLIENTES as $key=>$valor){
-                    $set = 'far fa-circle';
-                    if($valor['id']==$_SESSION['gesman']['CliId']){
-                        $set = 'fas fa-check-circle';
-                    }
-                    echo '
-                    <div class="col-12 divselect border-bottom border-secondary mb-1 p-1">
-                        <a class="link-colecciones" href="#" onclick="FnModalCambiarEmpresa('.$valor['id'].','."'".$valor['alias']."'".'); return false;">
-                            <div class="row position-relative">
-                                <div class="container-wa text-end pe-3 text-primary">
-                                        <i class="'.$set.' fs-5"></i>
-                                    </div>
-                                <div class="col-12">
-                                    <p class="m-0 text-secondary" style="font-size:13px;">'.$valor['ruc'].'</p>
-                                    <p class="m-0">'.$valor['alias'].'</p>
-                                </div>
-                            </div>
-                        </a>
-                    </div>';
-                }
-            }else{
-                echo '<div class="col-12"><p class="m-0">No hay Clientes disponibles.</p></div>';
-            }
-            ?>
+
+        <div class="d-none">
+            <input type="hidden" id="txtCliId" value="<?php echo $_SESSION['gesman']['CliId'];?>">
+        </div>
+
+        <div class="row mb-2" id="tblEmpresas">
+            <div class="col-12">
+                <p class="fst-italic">No hay Empresas disponibles.</p>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-12 font-weight-bold d-flex justify-content-center mb-3">
+                <button type="button" id="btnPrimero" class="btn btn-sm btn-outline-primary d-none mx-2" onclick="FnBuscarPrimero(); return false;">PRIMERO</button>
+                <button type="button" id="btnSiguiente" class="btn btn-sm btn-outline-primary d-none mx-2" onclick="FnBuscarSiguiente(); return false;">SIGUIENTE</button>
+            </div>
+        </div>           
     </div>
 
     <div class="modal fade" id="modalCambiarEmpresa" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">

@@ -2,17 +2,19 @@
 
     function FnAgregarOrden($conmy, $orden) {
         try {
-            $stmt = $conmy->prepare("CALL spman_agregarorden(:_equid, :_tipid, :_sisid, :_oriid, :_actid, :_cliid, :_nombre, :_equcodigo, :_tipnombre, :_sisnombre, :_orinombre, 
+            $stmt = $conmy->prepare("CALL spman_agregarorden(:_equid, :_tipid, :_famid, :_sisid, :_oriid, :_actid, :_cliid, :_nombre, :_equnombre, :_tipnombre, :_famnombre, :_sisnombre, :_orinombre, 
             :_fecha, :_tiptrabajo, :_actnombre, :_trabajos, :_observaciones, :_equkm, :_equhm, :_supervisor, :_clicontacto, :_usuario, @_id)");
             $stmt->bindParam(':_equid', $orden['equid'], PDO::PARAM_INT);
             $stmt->bindParam(':_tipid', $orden['tipid'], PDO::PARAM_INT);
+            $stmt->bindParam(':_famid', $orden['famid'], PDO::PARAM_INT);
             $stmt->bindParam(':_sisid', $orden['sisid'], PDO::PARAM_INT);
             $stmt->bindParam(':_oriid', $orden['oriid'], PDO::PARAM_INT);
             $stmt->bindParam(':_actid', $orden['actid'], PDO::PARAM_INT);
             $stmt->bindParam(':_cliid', $orden['cliid'], PDO::PARAM_INT);
             $stmt->bindParam(':_nombre', $orden['nombre'], PDO::PARAM_STR);
-            $stmt->bindParam(':_equcodigo', $orden['equcodigo'], PDO::PARAM_STR);
+            $stmt->bindParam(':_equnombre', $orden['equnombre'], PDO::PARAM_STR);
             $stmt->bindParam(':_tipnombre', $orden['tipnombre'], PDO::PARAM_STR);
+            $stmt->bindParam(':_famnombre', $orden['famnombre'], PDO::PARAM_STR);
             $stmt->bindParam(':_sisnombre', $orden['sisnombre'], PDO::PARAM_STR);
             $stmt->bindParam(':_orinombre', $orden['orinombre'], PDO::PARAM_STR);
             $stmt->bindParam(':_fecha', $orden['fecha'], PDO::PARAM_STR);
@@ -39,7 +41,7 @@
         try {
             $datos=array();
 
-            $stmt = $conmy->prepare("select idot, idactivo, idtipoot, idsistema, idorigen, idactividad, idcliente, ot, activo, tipoot, sistema, origen, fechainicial, 
+            $stmt = $conmy->prepare("select idot, idactivo, idtipoot, famid, idsistema, idorigen, idactividad, idcliente, ot, activo, tipoot, fam_nombre, sistema, origen, fechainicial, 
             tipotrabajo, actividad, descripcion, observaciones, km, hm, supervisor, contacto, estado FROM man_ots WHERE idot=:Id and idcliente=:CliId;");
             $stmt->execute(array(':Id'=>$id, ':CliId'=>$cliid));
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -48,13 +50,15 @@
                 $datos['id']=$row['idot'];
                 $datos['equid']=$row['idactivo'];
                 $datos['tipid']=$row['idtipoot'];
+                $datos['famid']=$row['famid'];
                 $datos['sisid']=$row['idsistema'];
                 $datos['oriid']=$row['idorigen'];
                 $datos['actid']=$row['idactividad'];
                 $datos['cliid']=$row['idcliente'];
                 $datos['nombre']=$row['ot'];
-                $datos['equcodigo']=$row['activo'];
+                $datos['equnombre']=$row['activo'];
                 $datos['tipnombre']=$row['tipoot'];
+                $datos['famnombre']=$row['fam_nombre'];
                 $datos['sisnombre']=$row['sistema'];
                 $datos['orinombre']=$row['origen'];
                 $datos['fecha']=$row['fechainicial'];
@@ -79,7 +83,7 @@
     function FnReporteOrdenes($conmy, $search){
         try {
             $datos = array();
-            $stmt = $conmy->prepare("select idot, ot, activo, tipoot, sistema, origen, fechainicial, tipotrabajo, actividad, descripcion, observaciones, km, hm, supervisor, contacto, estado from man_ots where idcliente=:CliId and fechainicial between :FechaInicial and :FechaFinal;");
+            $stmt = $conmy->prepare("select idot, ot, activo, tipoot, fam_nombre, sistema, origen, fechainicial, tipotrabajo, actividad, descripcion, observaciones, km, hm, supervisor, contacto, estado from man_ots where idcliente=:CliId and fechainicial between :FechaInicial and :FechaFinal;");
             $stmt->execute(array(':CliId'=>$search['cliid'], ':FechaInicial'=>$search['fechainicial'], ':FechaFinal'=>$search['fechafinal']));
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 $datos[]=array(
@@ -87,6 +91,7 @@
                     'nombre'=>$row['ot'],
                     'equcodigo'=>$row['activo'],
                     'tipnombre'=>$row['tipoot'],
+                    'famnombre'=>$row['fam_nombre'],
                     'sisnombre'=>$row['sistema'],
                     'orinombre'=>$row['origen'],
                     'fecha'=>$row['fechainicial'],
@@ -121,7 +126,7 @@
     function FnReporteOrdenesTareos($conmy, $search){
         try {
             $datos = array();
-            $stmt = $conmy->prepare("select o.idot, o.ot, o.activo, o.tipoot, o.sistema, o.origen, o.fechainicial, o.tipotrabajo, o.actividad, o.descripcion, o.observaciones, o.km, o.hm, o.supervisor, o.contacto, o.estado, t.personal, t.ingreso, t.refrigerio1, t.refrigerio2, t.salida, t.tmin from man_ots o left join man_tareos t on o.idot=t.idot where o.idcliente=:CliId and o.fechainicial between :FechaInicial and :FechaFinal;");
+            $stmt = $conmy->prepare("select o.idot, o.ot, o.activo, o.tipoot, o.fam_nombre, o.sistema, o.origen, o.fechainicial, o.tipotrabajo, o.actividad, o.descripcion, o.observaciones, o.km, o.hm, o.supervisor, o.contacto, o.estado, t.personal, t.ingreso, t.refrigerio1, t.refrigerio2, t.salida, t.tmin from man_ots o left join man_tareos t on o.idot=t.idot where o.idcliente=:CliId and o.fechainicial between :FechaInicial and :FechaFinal;");
             $stmt->execute(array(':CliId'=>$search['cliid'], ':FechaInicial'=>$search['fechainicial'], ':FechaFinal'=>$search['fechafinal']));
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 $datos[]=array(
@@ -129,6 +134,7 @@
                     'nombre'=>$row['ot'],
                     'equcodigo'=>$row['activo'],
                     'tipnombre'=>$row['tipoot'],
+                    'famnombre'=>$row['fam_nombre'],
                     'sisnombre'=>$row['sistema'],
                     'orinombre'=>$row['origen'],
                     'fecha'=>$row['fechainicial'],
@@ -174,6 +180,10 @@
                     $query.=" and idtipoot=".$orden['tipid'];
                 }
 
+                if($orden['famid']>0){
+                    $query.=" and famid=".$orden['famid'];
+                }
+
                 if($orden['sisid']>0){
                     $query.=" and idsistema=".$orden['sisid'];
                 }
@@ -192,7 +202,7 @@
 
                 $query.=" and fechainicial between '".$orden['fechainicial']."' and '".$orden['fechafinal']."'";
                 
-                $query.=" limit ".$orden['pagina'].", 15";
+                $query.=" order by idot desc limit ".$orden['pagina'].", 15";
             }
 
             $stmt = $conmy->prepare("select idot, idcliente, ot, activo, tipoot, fechainicial, actividad, km, estado from man_ots where idcliente=:CliId".$query.";");
@@ -205,7 +215,7 @@
                         'cliid'=>$row['idcliente'],
                         'fecha'=>$row['fechainicial'],                        
                         'nombre'=>$row['ot'],
-                        'equcodigo'=>$row['activo'],
+                        'equnombre'=>$row['activo'],
                         'tipnombre'=>$row['tipoot'],
                         'actnombre'=>$row['actividad'],
                         'equkm'=>$row['km'],
@@ -217,29 +227,6 @@
             return $datos;
         } catch (PDOException $ex) {
             throw new Exception($ex->getMessage());
-        }
-    }
-
-    function FnBuscarOrdenArchivos($conmy, $refid, $tabla) {
-        try {
-            $datos = array();
-
-            $stmt = $conmy->prepare("select id, nombre, titulo, descripcion, tipo from tblarchivos where refid=:RefId and tabla=:Tabla;");
-            $stmt->execute(array(':RefId'=>$refid, ':Tabla'=>$tabla));
-            if($stmt->rowCount()>0){
-                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    $datos[]=array(
-                        'id'=>$row['id'],
-                        'nombre'=>$row['nombre'],                        
-                        'titulo'=>$row['titulo'],
-                        'descripcion'=>$row['descripcion'],
-                        'tipo'=>$row['tipo']
-                    );
-                }
-            }            
-            return $datos;
-        } catch (PDOException $e) {
-            throw new Exception($e->getMessage());
         }
     }
 
@@ -260,8 +247,8 @@
     function FnModificarOrden($conmy, $orden) {
         try {
             $res=false;
-            $stmt=$conmy->prepare("update man_ots set idsistema=:SisId, idorigen=:OriId, idactividad=:ActId, sistema=:SisNombre, origen=:OriNombre, fechainicial=:Fecha, actividad=:Actividades, descripcion=:Trabajos, observaciones=:Observaciones, km=:EquKm, hm=:EquHm, supervisor=:Supervisor, contacto=:CliContacto, actualizacion=:Actualizacion where idot=:Id and idcliente=:CliId and estado in(1,2);");
-            $stmt->execute(array(':SisId'=>$orden['sisid'], ':OriId'=>$orden['oriid'], ':ActId'=>$orden['actid'], ':SisNombre'=>$orden['sisnombre'], ':OriNombre'=>$orden['orinombre'], ':Fecha'=>$orden['fecha'], ':Actividades'=>$orden['actividades'], ':Trabajos'=>$orden['trabajos'], ':Observaciones'=>$orden['observaciones'], ':EquKm'=>$orden['equkm'], ':EquHm'=>$orden['equhm'], ':Supervisor'=>$orden['supervisor'], ':CliContacto'=>$orden['clicontacto'], ':Actualizacion'=>$orden['usuario'], ':Id'=>$orden['id'], ':CliId'=>$orden['cliid']));
+            $stmt=$conmy->prepare("update man_ots set idactivo=:EquId, famid=:FamId, idsistema=:SisId, idorigen=:OriId, idactividad=:ActId, activo=:EquNombre, fam_nombre=:FamNombre, sistema=:SisNombre, origen=:OriNombre, fechainicial=:Fecha, actividad=:ActNombre, descripcion=:Trabajos, observaciones=:Observaciones, km=:EquKm, hm=:EquHm, supervisor=:Supervisor, contacto=:CliContacto, actualizacion=:Actualizacion where idot=:Id and idcliente=:CliId and estado in(1,2);");
+            $stmt->execute(array(':EquId'=>$orden['equid'], ':FamId'=>$orden['famid'], ':SisId'=>$orden['sisid'], ':OriId'=>$orden['oriid'], ':ActId'=>$orden['actid'], ':EquNombre'=>$orden['equnombre'], ':FamNombre'=>$orden['famnombre'], ':SisNombre'=>$orden['sisnombre'], ':OriNombre'=>$orden['orinombre'], ':Fecha'=>$orden['fecha'], ':ActNombre'=>$orden['actnombre'], ':Trabajos'=>$orden['trabajos'], ':Observaciones'=>$orden['observaciones'], ':EquKm'=>$orden['equkm'], ':EquHm'=>$orden['equhm'], ':Supervisor'=>$orden['supervisor'], ':CliContacto'=>$orden['clicontacto'], ':Actualizacion'=>$orden['usuario'], ':Id'=>$orden['id'], ':CliId'=>$orden['cliid']));
             if($stmt->rowCount()>0){
                 $res=true;
             }
@@ -285,81 +272,6 @@
             throw new Exception($ex->getMessage());
         }
     }
-
-    /*function FnListarClienteSistemas($conmy, $cliid, $nombre) {
-        try {
-            $datos = array();
-            $query="";
-
-            if(!empty($nombre)){
-                $query=" and sistema like '%".$nombre."%'";
-            }
-
-            $stmt = $conmy->prepare("select idsistema, sistema from man_sistemas where idcliente=:CliId and estado=2".$query.";");
-            $stmt->execute(array(':CliId'=>$cliid));
-            if($stmt->rowCount()>0){
-                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    $datos[]=array(
-                        'id'=>$row['idsistema'],
-                        'nombre'=>$row['sistema']
-                    );
-                }
-            }            
-            return $datos;
-        } catch (PDOException $e) {
-            throw new Exception($e->getMessage().$msg);
-        }
-    }*/
-
-    /*function FnListarClienteOrigenes($conmy, $cliid, $nombre) {
-        try {
-            $datos = array();
-            $query="";
-
-            if(!empty($nombre)){
-                $query=" and origen like '%".$nombre."%'";
-            }
-
-            $stmt = $conmy->prepare("select idorigen, origen from man_origenes where idcliente=:CliId and estado=2".$query.";");
-            $stmt->execute(array(':CliId'=>$cliid));
-            if($stmt->rowCount()>0){
-                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    $datos[]=array(
-                        'id'=>$row['idorigen'],
-                        'nombre'=>$row['origen']
-                    );
-                }
-            }            
-            return $datos;
-        } catch (PDOException $e) {
-            throw new Exception($e->getMessage().$msg);
-        }
-    }*/
-
-    /*function FnListarClienteContactos($conmy, $cliid, $nombre) {
-        try {
-            $datos = array();
-            $query="";
-
-            if(!empty($nombre)){
-                $query=" and supervisor like '%".$nombre."%'";
-            }
-
-            $stmt = $conmy->prepare("select idsupervisor, supervisor from cli_supervisores where idcliente=:CliId and estado=2".$query.";");
-            $stmt->execute(array(':CliId'=>$cliid));
-            if($stmt->rowCount()>0){
-                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    $datos[]=array(
-                        'id'=>$row['idsupervisor'],
-                        'nombre'=>$row['supervisor']
-                    );
-                }
-            }            
-            return $datos;
-        } catch (PDOException $e) {
-            throw new Exception($e->getMessage().$msg);
-        }
-    }*/
 
     function FnBuscarOrdenTareos($conmy, $ordid) {
         try {

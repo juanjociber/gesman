@@ -80,14 +80,14 @@
             $query = "";
 
             if(!empty($cliente['nombre'])){
-                $query=" and razonsocial like'%".$cliente['nombre']."%'";
+                $query=" and concat(razonsocial, nombre) like'%".$cliente['nombre']."%'";
             }
 
             if($cliente['estado']>0){
                 $query.=" and estado=".$cliente['estado'];
             }
 
-            $query.=" limit ".$cliente['pagina'].", 15";
+            $query.=" limit ".$cliente['pagina'].", 5";
 
             $stmt = $conmy->prepare("select idcliente, ruc, razonsocial, nombre, direccion, estado from man_clientes where 1=1".$query.";");
             $stmt->execute();
@@ -111,13 +111,45 @@
         }
     }
 
+    function FnBuscarEmpresas($conmy, $search) {
+        try {
+            $datos = array('data'=>array(), 'pag'=>0);
+            $query = "";
+
+            if(!empty($search['nombre'])){
+                $query=" and concat(razonsocial, nombre) like'%".$search['nombre']."%'";
+            }
+
+            $query.=" order by razonsocial limit ".$search['pagina'].", 15";
+
+            $stmt = $conmy->prepare("select idcliente, ruc, razonsocial, nombre, direccion, estado from man_clientes where estado=2".$query.";");
+            $stmt->execute();
+			$n=$stmt->rowCount();
+            if($n>0){
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $datos['data'][]=array(
+                        'id'=>$row['idcliente'],
+                        'ruc'=>$row['ruc'],
+                        'nombre'=>$row['razonsocial'],
+                        'alias'=>$row['nombre'],
+                        'direccion'=>$row['direccion']
+                    );
+                }
+                $datos['pag']=$n;
+            }            
+            return $datos;
+        } catch (PDOException $e) {
+            throw new Exception($e->getMessage());
+        }
+    }
+
     function FnListarClientes($conmy, $search) {
         try {
             $datos=array();
             $query="";
             
             if(!empty($search['nombre'])){
-                $query=" and nombre like '%".$search['nombre']."%'";
+                $query=" and concat(razonsocial, nombre) like '%".$search['nombre']."%'";
             }
 
             $stmt=$conmy->prepare("select idcliente, ruc, razonsocial, nombre from man_clientes where estado=2".$query." limit 15;");
@@ -136,7 +168,7 @@
         }
     }
 
-    function FnListarClientes2($conmy) {
+    /*function FnListarClientes2($conmy) {
         try {
             $datos=array();
             $stmt=$conmy->prepare("select idcliente, ruc, razonsocial, nombre from man_clientes where estado=2 order by nombre;");
@@ -153,6 +185,6 @@
         } catch (PDOException $e) {
             throw new Exception($e->getMessage());
         }
-    }
+    }*/
 
 ?>

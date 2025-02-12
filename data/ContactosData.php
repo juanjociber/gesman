@@ -46,13 +46,14 @@
 
             $query.=" limit ".$contacto['pagina'].", 15";
             
-            $stmt = $conmy->prepare("select idsupervisor, supervisor, estado from cli_supervisores where idcliente=:CliId".$query.";");
+            $stmt = $conmy->prepare("select idsupervisor, perid, supervisor, estado from cli_supervisores where idcliente=:CliId".$query.";");
             $stmt->execute(array(':CliId'=>$contacto['cliid']));
 			$n=$stmt->rowCount();
             if($n>0){
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                     $datos['data'][]=array(
                         'id'=>(int)$row['idsupervisor'],
+                        'perid'=>$row['perid'],
                         'nombre'=>$row['supervisor'],
                         'estado'=>(int)$row['estado']
                     );
@@ -109,4 +110,23 @@
             throw new Exception($e->getMessage().$msg);
         }
     }*/
+
+    function FnListarContactos($conmy, $search) {
+        try {
+            $datos=array();
+            $stmt=$conmy->prepare("select idsupervisor, perid, supervisor from cli_supervisores where idcliente=:CliId and estado=2 and supervisor like :Nombre limit 15;");
+            $stmt->execute(array(':CliId'=>$search['cliid'], ':Nombre'=>'%'.$search['nombre'].'%'));
+            while ($row=$stmt->fetch(PDO::FETCH_ASSOC)) {
+                $datos[]=array(
+                    'id'=>$row['idsupervisor'],
+                    'perid'=>$row['perid'],
+                    'nombre'=>$row['supervisor']
+                );
+            }
+            return $datos;
+        } catch (PDOException $e) {
+            throw new Exception($e->getMessage());
+        }
+    }
+
 ?>

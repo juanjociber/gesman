@@ -45,7 +45,7 @@ function isValidFileType(file) {
 }
 
 function isValidFileSize(file) {
-    const maxSize = 4 * 1024 * 1024; // 4MB en bytes
+    const maxSize = 10 * 1024 * 1024; // 10MB en bytes
     return file.size <= maxSize;
 }
 

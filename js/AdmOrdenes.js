@@ -3,7 +3,7 @@ const loader = document.querySelector('.container-loader-full');
 var search={
     cliente:0,
     equipo:0,
-    sistema:0,
+    familia:0,
     origen:0,
     tipo:0,
     orden:'',
@@ -45,6 +45,43 @@ $(document).ready(function() {
             cache: true
         },
         placeholder: 'Seleccionar'
+    }).on('select2:select',function(e){
+        $('#cbFamilia').val(null).trigger('change');
+        $('#cbEquipo').val(null).trigger('change');
+        $('#cbOrigen').val(null).trigger('change');
+    });
+});
+
+$(document).ready(function() {
+    $('#cbFamilia').select2({
+        width: 'resolve', //Personalizar el alto del select, aplicar estilo.
+        ajax: {
+            delay: 450,
+            url: '/gesman/search/AdmListarFamilias.php',
+            type: 'POST',
+            dataType: 'json',
+            data: function(params){
+                return {
+                    nombre: params.term,
+                    cliid: document.getElementById('cbCliente').value
+                };
+            },
+            processResults: function(datos){
+                return {
+                    results:datos.data.map(function(elem){
+                        return {
+                            id: elem.id,
+                            text: elem.ruta
+                        };
+                    })
+                }
+            },
+            cache: true
+        },
+        placeholder: 'Seleccionar',
+        allowClear: true
+    }).on('select2:select',function(e){
+        $('#cbEquipo').val(null).trigger('change');
     });
 });
 
@@ -58,40 +95,9 @@ $(document).ready(function() {
             dataType: 'json',
             data: function(params){
                 return {
-                    codigo: params.term,
-                    cliid: document.getElementById('cbCliente').value
-                };
-            },
-            processResults: function(datos){
-                return {
-                    results:datos.data.map(function(elem){
-                        return {
-                            id: elem.id,
-                            text: elem.codigo
-                        };
-                    })
-                }
-            },
-            cache: true
-        },
-        placeholder: 'Seleccionar',
-        allowClear: true,
-        minimumInputLength:1
-    });
-});
-
-$(document).ready(function() {
-    $('#cbSistema').select2({
-        width: 'resolve', //Personalizar el alto del select, aplicar estilo.
-        ajax: {
-            delay: 450, //Tiempo de demora para buscar
-            url: '/gesman/search/AdmListarSistemas.php',
-            type: 'POST',
-            dataType: 'json',
-            data: function (params) {
-                return {
                     nombre: params.term,
-                    cliid: document.getElementById('cbCliente').value
+                    cliid: document.getElementById('cbCliente').value,
+                    famid: document.getElementById('cbFamilia').value
                 };
             },
             processResults: function(datos){
@@ -107,8 +113,7 @@ $(document).ready(function() {
             cache: true
         },
         placeholder: 'Seleccionar',
-        allowClear: true, // Permite borrar la selección
-        minimumInputLength:1 //Caracteres minimos para buscar
+        allowClear: true
     });
 });
 
@@ -139,8 +144,7 @@ $(document).ready(function() {
             cache: true
         },
         placeholder: 'Seleccionar',
-        allowClear: true, // Permite borrar la selección
-        minimumInputLength:1 //Caracteres minimos para buscar
+        allowClear: true
     });
 });
 
@@ -149,7 +153,7 @@ async function FnBuscarOrdenes(){
     try {
         search.cliente=document.getElementById('cbCliente').value;
         search.equipo=document.getElementById('cbEquipo').value;
-        search.sistema=document.getElementById('cbSistema').value;
+        search.familia=document.getElementById('cbFamilia').value;
         search.origen=document.getElementById('cbOrigen').value;
         search.tipo=document.getElementById('cbTipo').value;
         search.orden=document.getElementById('txtOrden').value;        
@@ -175,13 +179,13 @@ async function FnBuscarOrdenes2(){
             cliid : search.cliente,
             equid : search.equipo,
             tipid : search.tipo,
-            sisid : search.sistema,
+            famid : search.familia,
             oriid : search.origen,
             nombre : search.orden,
             actnombre : search.actividad,
             fechainicial : search.fechaInicial,
             fechafinal : search.fechaFinal,
-            pagina : search.paginaActual
+            pagina : search.paginasTotal
         }
         
         const response = await fetch('/gesman/search/AdmBuscarOrdenes.php', {
@@ -232,7 +236,7 @@ function FnMostrarRegistros(datos){
                     <p class='m-0'><span class="fw-bold">${elem.nombre}</span> <span style="font-size: 12px; font-style: italic;">${elem.fecha}</span></p>
                     <p class='m-0'>${estado}</p>
                 </div>
-                <div>${elem.equcodigo} ${elem.tipnombre} ${elem.actnombre}</div>
+                <div>${elem.equnombre} ${elem.tipnombre} ${elem.actnombre}</div>
             </div>
         </div>`;
     });

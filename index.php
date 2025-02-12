@@ -14,6 +14,7 @@ if(!empty($_POST['usu']) && !empty($_POST['psw'])){
         if(empty($usuario['id'])){throw new Exception("El Usuario no esta disponible.");}
 
         $data=array(
+            'perid'=>$usuario['perid'],
             'pernombre'=>$usuario['pernombre'],
             'usunombre'=>$usuario['usunombre'],
             'rolman'=>$usuario['rolman']

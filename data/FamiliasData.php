@@ -1,15 +1,17 @@
 <?php
     
-    function FnAgregarSistema($conmy, $sistema) {
+    function FnAgregarFamilia($conmy, $familia) {
         try {
             $id=0;
-            $stmt=$conmy->prepare("insert into man_sistemas(idcliente, sistema, creacion, actualizacion) 
-            values(:CliId, :Nombre, :Creacion, :Actualizacion);");
+            $stmt=$conmy->prepare("insert into tblfamilias(cliid, ownid, nombre, ruta, creacion, actualizacion) 
+            values(:CliId, :OwnId, :Nombre, :Ruta, :Creacion, :Actualizacion);");
             $stmt->execute(array(
-                ':CliId'=>$sistema['cliid'],
-                ':Nombre'=>$sistema['nombre'],
-                ':Creacion'=>$sistema['usuario'],
-                ':Actualizacion'=>$sistema['usuario']
+                ':CliId'=>$familia['cliid'],
+                ':OwnId'=>$familia['ownid'],
+                ':Nombre'=>$familia['nombre'],
+                ':Ruta'=>$familia['ruta'],
+                ':Creacion'=>$familia['usuario'],
+                ':Actualizacion'=>$familia['usuario']                
             ));
             $id=$conmy->lastInsertId();
             return $id;
@@ -18,16 +20,18 @@
         }
     }
 
-    function FnModificarSistema($conmy, $sistema) {
+    function FnModificarFamilia($conmy, $familia) {
         try {
             $res=false;
-            $stmt=$conmy->prepare("update man_sistemas set sistema=:Nombre, estado=:Estado, actualizacion=:Actualizacion where idsistema=:Id and idcliente=:CliId;");
+            $stmt=$conmy->prepare("update tblfamilias set ownid=:OwnId, nombre=:Nombre, ruta=:Ruta, estado=:Estado, actualizacion=:Actualizacion where id=:Id and cliid=:CliId;");
             $stmt->execute(array(
-                ':Nombre'=>$sistema['nombre'],
-                ':Estado'=>$sistema['estado'],
-                ':Actualizacion'=>$sistema['usuario'],
-                ':Id'=>$sistema['id'],
-                ':CliId'=>$sistema['cliid']                
+                ':OwnId'=>$familia['ownid'],
+                ':Nombre'=>$familia['nombre'],
+                ':Ruta'=>$familia['ruta'],
+                ':Estado'=>$familia['estado'],
+                ':Actualizacion'=>$familia['usuario'],
+                ':Id'=>$familia['id'],
+                ':CliId'=>$familia['cliid']                
             ));
             if($stmt->rowCount()>0){
                 $res=true;
@@ -38,11 +42,11 @@
         }
     }
 
-    function FnValidarSistemaDuplicado($conmy, $search) {
+    function FnValidarFamiliaDuplicado($conmy, $search) {
         try {
             $cantidad=0;
-            $stmt=$conmy->prepare("select count(*) as cantidad from man_sistemas where idsistema!=:Id and idcliente=:CliId and sistema=:Nombre;");
-            $stmt->execute(array(':Id'=>$search['id'], ':CliId'=>$search['cliid'], ':Nombre'=>$search['nombre']));
+            $stmt=$conmy->prepare("select count(*) as cantidad from tblfamilias where id!=:Id and cliid=:CliId and ownid=:OwnId and nombre=:Nombre;");
+            $stmt->execute(array(':Id'=>$search['id'], ':CliId'=>$search['cliid'], ':OwnId'=>$search['ownid'], ':Nombre'=>$search['nombre']));
             $row=$stmt->fetch();
             if($row){
                 $cantidad=$row['cantidad'];
@@ -53,13 +57,13 @@
         }
     }
 
-    function FnBuscarSistemas($conmy, $search) {
+    function FnBuscarFamilias($conmy, $search) {
         try {
             $datos = array('data'=>array(), 'pag'=>0);
             $query = "";
 
             if(!empty($search['nombre'])){
-                $query=" and sistema like'%".$search['nombre']."%'";
+                $query=" and nombre like'%".$search['nombre']."%'";
             }
 
             if($search['estado']>0){
@@ -68,14 +72,16 @@
 
             $query.=" limit ".$search['pagina'].", 15";
 
-            $stmt = $conmy->prepare("select idsistema, sistema, estado from man_sistemas where idcliente=:CliId".$query.";");
+            $stmt = $conmy->prepare("select id, ownid, nombre, ruta, estado from tblfamilias where cliid=:CliId".$query.";");
             $stmt->execute(array(':CliId'=>$search['cliid']));
             $n=$stmt->rowCount();
             if($n>0){
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                     $datos['data'][]=array(
-                        'id'=>(int)$row['idsistema'],
-                        'nombre'=>$row['sistema'],
+                        'id'=>(int)$row['id'],
+                        'ownid'=>$row['ownid'],
+                        'nombre'=>$row['nombre'],
+                        'ruta'=>$row['ruta'],
                         'estado'=>(int)$row['estado']
                     );
                 }
@@ -87,15 +93,17 @@
         }
     }
 
-    function FnBuscarSistema($conmy, $search) {
+    function FnBuscarFamilia($conmy, $search) {
         try {
             $datos=array();
-            $stmt = $conmy->prepare("select idsistema, sistema, estado from man_sistemas where idsistema=:Id and idcliente=:CliId;");
+            $stmt = $conmy->prepare("select id, ownid, nombre, ruta, estado from tblfamilias where id=:Id and cliid=:CliId;");
             $stmt->execute(array(':Id'=>$search['id'], ':CliId'=>$search['cliid']));
             $row = $stmt->fetch(PDO::FETCH_ASSOC);            
             if ($row) {
-                $datos['id']=$row['idsistema'];
-                $datos['nombre']=$row['sistema'];
+                $datos['id']=$row['id'];
+                $datos['ownid']=$row['ownid'];
+                $datos['nombre']=$row['nombre'];
+                $datos['ruta']=$row['ruta'];
                 $datos['estado']=$row['estado'];
             }            
             return $datos;
@@ -106,15 +114,17 @@
         }
     }
 
-    function FnListarSistemas($conmy, $search) {
+    function FnListarFamilias($conmy, $search) {
         try {
             $datos=array();
-            $stmt=$conmy->prepare("select idsistema, sistema from man_sistemas where idcliente=:CliId and estado=2 and sistema like :Nombre limit 15;");
+            $stmt=$conmy->prepare("select id, ownid, nombre, ruta from tblfamilias where cliid=:CliId and estado=2 and ruta like :Nombre limit 15;");
             $stmt->execute(array(':CliId'=>$search['cliid'], ':Nombre'=>'%'.$search['nombre'].'%'));
             while ($row=$stmt->fetch(PDO::FETCH_ASSOC)) {
                 $datos[]=array(
-                    'id'=>$row['idsistema'],
-                    'nombre'=>$row['sistema']
+                    'id'=>$row['id'],
+                    'ownid'=>$row['ownid'],
+                    'nombre'=>$row['nombre'],
+                    'ruta'=>$row['ruta']
                 );
             }
             return $datos;
